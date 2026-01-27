@@ -70,12 +70,15 @@ export const ATTRIBUTES = {
 };
 
 // REVISED EDITION ABILITIES (p. 119)
-// Note: 'Dodge' replaces 'Athletics' for defense. 'Security' replaces 'Larceny'. 'Linguistics' is a Knowledge.
+// Note: 'Dodge' replaces 'Athletics' for defense/Awareness. 'Security' replaces 'Larceny'. 'Linguistics' is a Knowledge.
 export const ABILITIES = {
     Talents: ["Alertness", "Athletics", "Brawl", "Dodge", "Empathy", "Expression", "Intimidation", "Leadership", "Streetwise", "Subterfuge"],
     Skills: ["Animal Ken", "Crafts", "Drive", "Etiquette", "Firearms", "Melee", "Performance", "Security", "Stealth", "Survival"],
     Knowledges: ["Academics", "Computer", "Finance", "Investigation", "Law", "Linguistics", "Medicine", "Occult", "Politics", "Science"]
 };
+
+// BROAD ABILITIES (For Specialty Warnings)
+export const BROAD_ABILITIES = ["Crafts", "Performance", "Science", "Academics"];
 
 export const DISCIPLINES = [
     "Animalism", "Auspex", "Celerity", "Chimerstry", "Dementation", 
@@ -91,7 +94,7 @@ export const CLAN_DISCIPLINES = {
     "Gangrel": ["Animalism", "Fortitude", "Protean"],
     "Giovanni": ["Dominate", "Necromancy", "Potence"],
     "Lasombra": ["Dominate", "Obtenebration", "Potence"],
-    "Malkavian": ["Auspex", "Dementation", "Obfuscate"], // Revised restored Dementation to main clan
+    "Malkavian": ["Auspex", "Dementation", "Obfuscate"], // Revised era often includes Dementation (Guide to Camarilla)
     "Nosferatu": ["Animalism", "Obfuscate", "Potence"],
     "Ravnos": ["Animalism", "Chimerstry", "Fortitude"],
     "Toreador": ["Auspex", "Celerity", "Presence"],
