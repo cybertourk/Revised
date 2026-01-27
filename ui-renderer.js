@@ -1,26 +1,34 @@
 import { 
     BACKGROUNDS, ATTRIBUTES, ABILITIES, VIRTUES, 
     V20_WEAPONS_LIST, V20_ARMOR_LIST, V20_VEHICLES_LIST, SPECIALTY_EXAMPLES,
-    HEALTH_STATES, CLAN_DISCIPLINES, CLAN_WEAKNESSES 
+    HEALTH_STATES, CLAN_DISCIPLINES, CLAN_WEAKNESSES, V20_MERITS_LIST, V20_FLAWS_LIST 
 } from "./data.js";
 
 import { 
     renderDots, renderBoxes, setSafeText, showNotification 
 } from "./ui-common.js";
 
-// Import updateClanMechanicsUI from ui-mechanics (it's exported on window, but safer to try import or window check)
-// Since circular dependencies can be tricky, we'll rely on window.updateClanMechanicsUI being available
-// or safe check inside updatePools.
-
 import { 
     setDots 
 } from "./ui-mechanics.js";
 
 import { renderPrintSheet } from "./ui-print.js";
-import { getXpCost } from "./v20-rules.js"; // Import cost calculator
+import { getXpCost } from "./v20-rules.js"; 
 
-// --- EXPORT HELPERS (Re-exporting for main.js access) ---
+// Import the new advantage renderers to link them for compatibility
+import { renderDynamicTraitRow } from "./ui-advantages.js";
+
+// --- EXPORT HELPERS ---
 export { renderDots, renderBoxes, setDots };
+
+// --- COMPATIBILITY BRIDGE ---
+// This ensures that if updatePools calls renderMeritsFlaws, it triggers the new logic in ui-advantages
+window.renderMeritsFlaws = function() {
+    if (renderDynamicTraitRow) {
+        renderDynamicTraitRow('merits-list-create', 'Merit', V20_MERITS_LIST);
+        renderDynamicTraitRow('flaws-list-create', 'Flaw', V20_FLAWS_LIST);
+    }
+};
 
 // --- INPUT HYDRATION (Populates Text Fields from State) ---
 export function hydrateInputs() {
@@ -111,7 +119,6 @@ export function refreshTraitRow(label, type, targetEl) {
     const max = 5;
 
     let showSpecialty = false;
-    let warningMsg = "";
 
     if (type !== 'virt') {
         if (type === 'attr') {
@@ -297,7 +304,6 @@ export function setupInventoryListeners() {
             if(renderPrintSheet) renderPrintSheet();
             showNotification(`Added ${name}`);
             
-            // Clear Inputs
             document.getElementById('inv-name').value = '';
         };
     }
@@ -353,7 +359,7 @@ window.toggleInvStatus = function(index) {
     const item = window.state.inventory[index];
     item.status = item.status === 'carried' ? 'owned' : 'carried';
     renderInventoryList();
-    updatePools(); // Update Armor pool if needed
+    updatePools(); 
     if(renderPrintSheet) renderPrintSheet();
 };
 
@@ -393,22 +399,18 @@ export function handleBoxClick(type, val, element) {
 window.handleBoxClick = handleBoxClick;
 
 
-// --- STATE MANAGEMENT & POOL UPDATES (UPDATED) ---
+// --- STATE MANAGEMENT & POOL UPDATES ---
 
 export function updatePools() {
     if (!window.state.status) window.state.status = { humanity: 7, willpower: 5, tempWillpower: 5, health_states: [0,0,0,0,0,0,0], blood: 0 };
     if (window.state.status.tempWillpower === undefined) window.state.status.tempWillpower = window.state.status.willpower || 5;
     if (window.state.status.health_states === undefined || !Array.isArray(window.state.status.health_states)) window.state.status.health_states = [0,0,0,0,0,0,0];
 
-    // --- CALCULATE XP ADJUSTMENTS (To exclude from Freebie/Creation counts) ---
+    // --- XP ADJUSTMENTS ---
     const xpAdj = { attr: {}, abil: {}, disc: {}, back: {}, virt: {}, status: {} };
     
-    // DEBUG: Track XP Log processing
-    // console.log("Processing XP Log for Freebie Calc:", window.state.xpLog);
-
     if (window.state.xpLog && Array.isArray(window.state.xpLog)) {
         window.state.xpLog.forEach(l => {
-            // FIX: Force integers to avoid string math issues
             const newVal = parseInt(l.new || 0);
             const oldVal = parseInt(l.old || 0);
             const delta = newVal - oldVal;
@@ -424,9 +426,6 @@ export function updatePools() {
             }
         });
     }
-
-    // DEBUG: See what the app thinks you bought with XP
-    // console.log("XP Adjustments (Points to subtract from Freebie Calc):", xpAdj);
 
     const getEffectiveVal = (type, name, actual) => {
         const adj = (type === 'status') 
