@@ -9,7 +9,7 @@ export const BROAD_ABILITIES = [
 // --- CALCULATORS ---
 
 /**
- * Calculates the total Freebie Points spent based on V20 Core Rules.
+ * Calculates the total Freebie Points spent based on Revised Edition Rules.
  * Assumes the character has ALREADY met the base creation requirements.
  * Any dots above the creation limits are charged.
  * @param {Object} state - The character state object.
@@ -64,10 +64,11 @@ export function calculateTotalFreebiesSpent(state) {
     // So total dots = 3 (base) + 7 (assign) = 10.
     if (totalVirt > 10) spent += (totalVirt - 10) * 2;
 
-    // 6. Humanity / Path (2 pts per dot)
+    // 6. Humanity / Path (1 pt per dot - REVISED DIFFERENCE vs V20's 2pts)
+    // Revised Core p. 122: Humanity costs 1 freebie point per dot.
     const baseH = (state.dots.virt?.Conscience || 1) + (state.dots.virt?.["Self-Control"] || 1);
     const currentH = state.status.humanity !== undefined ? state.status.humanity : baseH;
-    if (currentH > baseH) spent += (currentH - baseH) * 2;
+    if (currentH > baseH) spent += (currentH - baseH) * 1;
 
     // 7. Willpower (1 pt per dot)
     const baseW = state.dots.virt?.Courage || 1;
@@ -208,7 +209,7 @@ export function getPool(state, attrName, abilName) {
 }
 
 /**
- * Calculates XP Cost for upgrades based on V20 Core p.124
+ * Calculates XP Cost for upgrades based on REVISED EDITION Rules.
  * @param {number} currentRating - The dot value the character ALREADY has.
  * @param {string} type - 'attr', 'abil', 'disc', 'virt', 'humanity', 'willpower', 'path'
  * @param {boolean} isClan - If the Discipline is in-clan (ignored for Caitiff who use specific rule)
@@ -216,7 +217,7 @@ export function getPool(state, attrName, abilName) {
  * @returns {number} The cost to buy the NEXT dot.
  */
 export function getXpCost(currentRating, type, isClan = false, isCaitiff = false) {
-    // V20 Core Rulebook p.124
+    // REVISED EDITION Core Rulebook p. 124 Experience Chart
     // Ensure rating is an integer to prevent string coercion errors (e.g., "0" === 0 is false)
     const rating = parseInt(currentRating);
 
@@ -233,8 +234,6 @@ export function getXpCost(currentRating, type, isClan = false, isCaitiff = false
             
         case 'disc': 
             // "New Discipline... 10"
-            // Note: This applies to NEW disciplines the character doesn't have.
-            // Primary Path (Thaumaturgy/Necromancy) counts as the Discipline itself.
             if (rating === 0) return 10;
             
             // "Caitiff... current rating x 6"
@@ -259,15 +258,16 @@ export function getXpCost(currentRating, type, isClan = false, isCaitiff = false
             return rating;
             
         case 'path':
-            // "New Path... 7"
-            // This applies to SECONDARY paths (Necromancy or Thaumaturgy)
+            // REVISED SPECIFIC: Secondary Path (Thaum/Necro)
+            // Revised p. 124: "Secondary Path... current rating x 4"
+            // Note: New Path is not explicitly listed as flat 7 in Revised, 
+            // usually treated as current rating * 4 (so 0->1 costs 0? No, usually treated as New Ability = 7 or 1x4=4)
+            // Revised convention: New Path = 7 XP.
             if (rating === 0) return 7;
-            // "Secondary Path... current rating x 4"
             return rating * 4;
 
         case 'back':
-            // Backgrounds technically cost XP in some games but V20 core chart doesn't list them.
-            // Some STs allow it. We'll default to x1 if used, but usually they are earned via roleplay.
+            // Backgrounds typically x1 or disallowed.
             return rating * 1; 
 
         default: return 0;
@@ -287,7 +287,6 @@ export function getGenerationDerivedStats(dots = 0) {
     const effectiveGen = Math.max(8, Math.min(13, currentGen));
     
     // Look up in GEN_LIMITS from data.js
-    // Keys in GEN_LIMITS are numbers like 13, 12, etc.
     const limits = GEN_LIMITS[effectiveGen] || { m: 10, pt: 1 };
 
     return {
