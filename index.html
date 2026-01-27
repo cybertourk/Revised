@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VtM Character Creator V20</title>
+    <title>VtM Character Creator Revised</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -69,7 +69,7 @@
 <body class="p-2 md:p-8 bg-black text-white font-serif">
 
     <div id="loading-overlay" class="fixed inset-0 bg-black flex flex-col items-center justify-center z-[9999]">
-        <h1 class="text-[#8b0000] text-7xl font-bold animate-pulse tracking-[0.5em] heading">V20</h1>
+        <h1 class="text-[#8b0000] text-7xl font-bold animate-pulse tracking-[0.2em] heading">REVISED</h1>
         <p class="text-[11px] text-gray-400 tracking-[0.4em] mt-6 uppercase font-bold">Initializing Character Sheet...</p>
     </div>
 
@@ -83,7 +83,7 @@
             <div class="flex items-center gap-6 flex-shrink-0">
                 <div class="flex flex-col justify-center leading-none select-none cursor-default group">
                     <h1 class="text-2xl text-[#af0000] font-bold tracking-[0.2em] font-cinzel group-hover:text-[#ff0000] transition-colors shadow-black drop-shadow-md">VAMPIRE</h1>
-                    <span class="text-[0.6rem] text-[#d4af37] tracking-[0.3em] font-serif italic uppercase opacity-80 group-hover:opacity-100 transition-opacity">The Masquerade</span>
+                    <span class="text-[0.6rem] text-[#d4af37] tracking-[0.3em] font-serif italic uppercase opacity-80 group-hover:opacity-100 transition-opacity">The Masquerade (Revised)</span>
                 </div>
 
                 <!-- USER AUTH -->
@@ -243,7 +243,7 @@
         <!-- SPECIALTY -->
         <div id="specialty-container" class="items-center gap-2 mb-2 px-3 py-2 bg-white/10 border border-white/20 rounded">
             <input type="checkbox" id="use-specialty" class="w-4 h-4 cursor-pointer">
-            <label for="use-specialty" class="text-[10px] uppercase font-black text-white cursor-pointer tracking-tight">Specialty Applied (10s = 2 Successes)</label>
+            <label for="use-specialty" class="text-[10px] uppercase font-black text-white cursor-pointer tracking-tight">Specialty Applied (10s Explode)</label>
         </div>
 
         <!-- WILLPOWER EXPENDITURE -->
@@ -465,7 +465,7 @@
                                 <div>Range</div>
                                 <div>Clip</div>
                             </div>
-                            <!-- Standard Maneuvers (Static) -->
+                            <!-- Standard Maneuvers (Static) - REVISED EDITION -->
                             <div class="grid grid-cols-6 gap-2 text-[10px] border-b border-[#222] py-1 text-center text-gray-500">
                                 <div class="col-span-2 text-left pl-2 font-bold text-white">Bite</div>
                                 <div>5</div><div>Str+1(A)</div><div>-</div><div>-</div>
@@ -613,9 +613,10 @@
                                         <button type="button" class="bg-[#7f1d1d] text-red-200 text-[9px] font-bold py-1 px-1 rounded border border-red-800 hover:bg-red-900 uppercase" onclick="window.applyDamage('Lethal')">Lethal (X)</button>
                                         <button type="button" class="bg-[#713f12] text-yellow-200 text-[9px] font-bold py-1 px-1 rounded border border-yellow-800 hover:bg-yellow-900 uppercase" onclick="window.applyDamage('Aggravated')">Agg (*)</button>
                                     </div>
-                                    <div class="flex gap-2">
+                                    <div class="flex gap-1">
                                         <button type="button" class="flex-1 bg-gray-800 text-gray-300 text-[9px] font-bold py-1 rounded border border-gray-600 hover:bg-gray-700 uppercase" onclick="window.setupSoak()">Roll Soak</button>
-                                        <button type="button" class="flex-1 bg-green-900/40 text-green-300 text-[9px] font-bold py-1 rounded border border-green-800 hover:bg-green-900 uppercase" onclick="window.healOneLevel()">Heal (1 BP)</button>
+                                        <button type="button" class="flex-1 bg-green-900/40 text-green-300 text-[9px] font-bold py-1 rounded border border-green-800 hover:bg-green-900 uppercase" onclick="window.healOneLevel()">Heal (1)</button>
+                                        <button type="button" class="flex-1 bg-red-900/40 text-red-300 text-[9px] font-bold py-1 rounded border border-red-800 hover:bg-red-900 uppercase" onclick="window.healBattle()" title="5 BP + 1 WP">Battle (5/1)</button>
                                     </div>
                                 </div>
 
@@ -756,7 +757,7 @@
                 </div>
                 
                 <div class="text-[10px] text-gray-500 italic pt-2 border-t border-[#333]">
-                    V20 Core Rules, p. 267
+                    Revised Core Rules, p. 136
                 </div>
             </div>
         </div>
@@ -812,7 +813,7 @@
                 </div>
                 
                 <div class="text-[10px] text-gray-500 italic pt-2 border-t border-[#333]">
-                    V20 Core Rules, p. 312-313
+                    Revised Core Rules, p. 221
                 </div>
             </div>
         </div>
@@ -883,7 +884,7 @@
                 </div>
                 
                 <div class="text-[10px] text-gray-500 italic pt-2 border-t border-[#333]">
-                    V20 Core Rules, p. 270
+                    Revised Core Rules, p. 138
                 </div>
             </div>
         </div>
@@ -913,7 +914,7 @@
         <div class="modal-box bg-[#0a0a0a] border border-red-900 w-full max-w-md shadow-[0_0_30px_rgba(139,0,0,0.5)]">
             <h2 class="text-xl text-red-500 font-cinzel font-bold mb-4 border-b border-red-900 pb-2 uppercase tracking-wider text-center">Guest Access Detected</h2>
             <div class="p-4 text-center space-y-4">
-                <p class="text-sm text-gray-300">You are currently using the V20 Creator as a <strong class="text-white">Guest</strong>.</p>
+                <p class="text-sm text-gray-300">You are currently using the Revised Creator as a <strong class="text-white">Guest</strong>.</p>
                 <p class="text-xs text-gray-400 italic">Your characters will only be saved to this specific browser's local storage.</p>
                 
                 <div class="bg-blue-900/20 border border-blue-900/50 p-2 rounded text-[10px] text-blue-200">
