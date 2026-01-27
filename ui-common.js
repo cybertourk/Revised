@@ -22,7 +22,7 @@ export function setSafeText(id, val) {
 }
 window.setSafeText = setSafeText;
 
-export function renderDots(count, max = 5) { 
+export function renderDots(count, max = 5, isPrint = false) { 
     let h = ''; 
     for(let i=1; i<=max; i++) h += `<span class="dot ${i <= count ? 'filled' : ''}" data-v="${i}"></span>`; 
     return h; 
@@ -249,6 +249,6 @@ export function handleBoxClick(type, val, element) {
         if(element) element.dataset.state = s; 
     }
     if(window.updatePools) window.updatePools();
-    if(window.renderPrintSheet) window.renderPrintSheet(); // Update print health/boxes
+    if(window.renderPrintSheet) window.renderPrintSheet(); 
 }
 window.handleBoxClick = handleBoxClick;
