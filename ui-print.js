@@ -213,18 +213,18 @@ export function renderPrintSheet() {
         });
     }
 
-    // 8. Combat & Inventory
+    // 8. Combat & Inventory (Updated for Revised Edition Difficulties)
     const combatTbl = document.getElementById('pr-combat-table');
     if (combatTbl) {
         // Use a single string buffer to construct the innerHTML
         let tblHTML = '';
         
-        // Add Maneuvers (Extended V20 List)
+        // Add Maneuvers (Revised Edition Rules)
         const manuevers = [
-            {n: 'Bite', d: 6, dmg: 'Str+1 (A)'},
+            {n: 'Bite', d: 5, dmg: 'Str+1 (A)'}, // Revised Diff 5
             {n: 'Block', d: 6, dmg: 'None (R)'},
             {n: 'Claw', d: 6, dmg: 'Str+1 (A)'},
-            {n: 'Clinch', d: 6, dmg: 'Str (B)'},
+            {n: 'Grapple', d: 6, dmg: 'Str (B)'}, // Revised naming preference
             {n: 'Disarm', d: 7, dmg: 'Special'},
             {n: 'Dodge', d: 6, dmg: 'None (R)'},
             {n: 'Hold', d: 6, dmg: 'None (C)'},
@@ -298,7 +298,7 @@ export function renderPrintSheet() {
         if (armorNamesEl) armorNamesEl.innerText = names.length > 0 ? names.join(', ') : "None";
     }
 
-    // 2. Full Update of Edit Mode Combat List
+    // 2. Full Update of Edit Mode Combat List (Revised Diff Values)
     if (combatListEl) {
         // Get the parent container (the column flex container)
         const combatContainer = combatListEl.parentElement;
@@ -315,12 +315,12 @@ export function renderPrintSheet() {
                 </div>
             `;
 
-            // Standard V20 Maneuvers (Same list as Play Mode)
+            // Revised Standard Maneuvers
             const standards = [
-                {n:'Bite', diff:6, dmg:'Str+1(A)', rng:'-', rate:'-', clip:'-'},
+                {n:'Bite', diff:5, dmg:'Str+1(A)', rng:'-', rate:'-', clip:'-'}, // Diff 5
                 {n:'Block', diff:6, dmg:'None (R)', rng:'-', rate:'-', clip:'-'},
                 {n:'Claw', diff:6, dmg:'Str+1(A)', rng:'-', rate:'-', clip:'-'},
-                {n:'Clinch', diff:6, dmg:'Str(C)', rng:'-', rate:'-', clip:'-'},
+                {n:'Grapple', diff:6, dmg:'Str(B)', rng:'-', rate:'-', clip:'-'},
                 {n:'Disarm', diff:7, dmg:'Special', rng:'-', rate:'-', clip:'-'},
                 {n:'Dodge', diff:6, dmg:'None (R)', rng:'-', rate:'-', clip:'-'},
                 {n:'Hold', diff:6, dmg:'None (C)', rng:'-', rate:'-', clip:'-'},
