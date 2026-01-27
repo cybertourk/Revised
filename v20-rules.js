@@ -1,4 +1,7 @@
-import { ATTRIBUTES, ABILITIES, DISCIPLINES, BACKGROUNDS, VIRTUES, V20_MERITS_LIST, V20_FLAWS_LIST, GEN_LIMITS } from "./data.js";
+import { 
+    ATTRIBUTES, ABILITIES, DISCIPLINES, BACKGROUNDS, VIRTUES, 
+    V20_MERITS_LIST, V20_FLAWS_LIST, GEN_LIMITS 
+} from "./data.js";
 
 // --- CONSTANTS ---
 
@@ -9,7 +12,7 @@ export const BROAD_ABILITIES = [
 // --- CALCULATORS ---
 
 /**
- * Calculates the total Freebie Points spent based on Revised Edition Rules.
+ * Calculates the total Freebie Points spent based on Revised Edition Rules (1998).
  * Assumes the character has ALREADY met the base creation requirements.
  * Any dots above the creation limits are charged.
  * @param {Object} state - The character state object.
@@ -36,9 +39,15 @@ export function calculateTotalFreebiesSpent(state) {
             totalAbil += (state.dots.abil[a] || 0);
         });
     });
+    // Add custom abilities (Hobby Talent/Skill/Knowledge)
     if (state.customAbilityCategories) {
         Object.keys(state.dots.abil).forEach(k => {
-            if (state.customAbilityCategories[k]) totalAbil += state.dots.abil[k];
+            // Only count if it's a custom entry (not in main list)
+            let isStandard = false;
+            Object.values(ABILITIES).forEach(arr => { if(arr.includes(k)) isStandard = true; });
+            if (!isStandard && state.customAbilityCategories[k]) {
+                totalAbil += (state.dots.abil[k] || 0);
+            }
         });
     }
     
@@ -64,7 +73,7 @@ export function calculateTotalFreebiesSpent(state) {
     // So total dots = 3 (base) + 7 (assign) = 10.
     if (totalVirt > 10) spent += (totalVirt - 10) * 2;
 
-    // 6. Humanity / Path (1 pt per dot - REVISED DIFFERENCE vs V20's 2pts)
+    // 6. Humanity / Path (1 pt per dot)
     // Revised Core p. 122: Humanity costs 1 freebie point per dot.
     const baseH = (state.dots.virt?.Conscience || 1) + (state.dots.virt?.["Self-Control"] || 1);
     const currentH = state.status.humanity !== undefined ? state.status.humanity : baseH;
@@ -80,7 +89,7 @@ export function calculateTotalFreebiesSpent(state) {
     
     let flawBonus = 0;
     if (state.flaws) state.flaws.forEach(f => flawBonus += (parseInt(f.val) || 0));
-    const effectiveBonus = Math.min(flawBonus, 7);
+    const effectiveBonus = Math.min(flawBonus, 7); // Max 7 points of flaws return points
     spent -= effectiveBonus;
 
     return spent;
@@ -117,6 +126,7 @@ export function checkCreationComplete(state) {
     for (const [group, val] of Object.entries(state.prios.abil)) {
         let sum = 0;
         ABILITIES[group].forEach(a => sum += (state.dots.abil[a] || 0));
+        // Add custom abilities assigned to this group
         if (state.customAbilityCategories) {
             Object.entries(state.customAbilityCategories).forEach(([name, cat]) => {
                 if (cat === group) sum += (state.dots.abil[name] || 0);
@@ -150,7 +160,6 @@ export function checkCreationComplete(state) {
 export function checkStepComplete(step, state) {
     if (step === 1) {
         const f = state.textFields || {};
-        // Ensure values exist and are strings (specifically for c-gen which might be number 13 or string "13")
         const hasName = f['c-name'] && f['c-name'].trim() !== "";
         const hasClan = f['c-clan'] && f['c-clan'].trim() !== "";
         const hasGen = (f['c-gen'] !== undefined && f['c-gen'] !== null && f['c-gen'] !== "");
@@ -212,13 +221,12 @@ export function getPool(state, attrName, abilName) {
  * Calculates XP Cost for upgrades based on REVISED EDITION Rules.
  * @param {number} currentRating - The dot value the character ALREADY has.
  * @param {string} type - 'attr', 'abil', 'disc', 'virt', 'humanity', 'willpower', 'path'
- * @param {boolean} isClan - If the Discipline is in-clan (ignored for Caitiff who use specific rule)
+ * @param {boolean} isClan - If the Discipline is in-clan
  * @param {boolean} isCaitiff - If the character is Clanless (all Discs cost x6)
  * @returns {number} The cost to buy the NEXT dot.
  */
 export function getXpCost(currentRating, type, isClan = false, isCaitiff = false) {
     // REVISED EDITION Core Rulebook p. 124 Experience Chart
-    // Ensure rating is an integer to prevent string coercion errors (e.g., "0" === 0 is false)
     const rating = parseInt(currentRating);
 
     switch(type) {
@@ -237,6 +245,8 @@ export function getXpCost(currentRating, type, isClan = false, isCaitiff = false
             if (rating === 0) return 10;
             
             // "Caitiff... current rating x 6"
+            // (Note: Revised p. 124 sidebar doesn't give Caitiff a New Disc cost break, 
+            // but implies standard x6 multiplier. We keep 10 as base for 'New'.)
             if (isCaitiff) return rating * 6;
 
             // "Clan Discipline... current rating x 5"
@@ -260,14 +270,12 @@ export function getXpCost(currentRating, type, isClan = false, isCaitiff = false
         case 'path':
             // REVISED SPECIFIC: Secondary Path (Thaum/Necro)
             // Revised p. 124: "Secondary Path... current rating x 4"
-            // Note: New Path is not explicitly listed as flat 7 in Revised, 
-            // usually treated as current rating * 4 (so 0->1 costs 0? No, usually treated as New Ability = 7 or 1x4=4)
-            // Revised convention: New Path = 7 XP.
+            // New Path is typically 7.
             if (rating === 0) return 7;
             return rating * 4;
 
         case 'back':
-            // Backgrounds typically x1 or disallowed.
+            // Backgrounds typically x1 or disallowed in standard rules, but x1 for homebrew.
             return rating * 1; 
 
         default: return 0;
@@ -281,17 +289,18 @@ export function getXpCost(currentRating, type, isClan = false, isCaitiff = false
  */
 export function getGenerationDerivedStats(dots = 0) {
     const baseGen = 13;
-    const currentGen = baseGen - dots; // 13 - 0 = 13th, 13 - 5 = 8th
+    const currentGen = baseGen - dots; 
     
-    // Safety clamp (though inputs should handle this)
+    // Safety clamp
     const effectiveGen = Math.max(8, Math.min(13, currentGen));
     
     // Look up in GEN_LIMITS from data.js
-    const limits = GEN_LIMITS[effectiveGen] || { m: 10, pt: 1 };
+    // Note: GEN_LIMITS keys are strings "13", "12" etc.
+    const limits = GEN_LIMITS[effectiveGen.toString()] || { m: 10, pt: 1 };
 
     return {
         generation: effectiveGen,
-        maxBlood: limits.m,
-        bpPerTurn: limits.pt
+        maxBlood: limits.m || limits.maxBlood,
+        bpPerTurn: limits.pt || limits.bloodPerTurn
     };
 }
