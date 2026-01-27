@@ -27,7 +27,7 @@ export function showWillpowerInfo(e) {
     
     const nature = window.state.textFields['c-nature'] || document.getElementById('c-nature')?.value || "None";
     
-    let rule = "Standard rules apply. See V20 Core Rules p. 267.";
+    let rule = "Standard rules apply. See Revised Core Rules p. 136.";
     if (ARCHETYPE_RULES && ARCHETYPE_RULES[nature]) {
         rule = ARCHETYPE_RULES[nature];
     }
@@ -181,12 +181,21 @@ export function applyPlayModeUI() {
         else diceBtn.classList.add('hidden');
     }
     
-    // Disable Inputs
+    // Disable Inputs (With Revised Logic Whitelist)
     document.querySelectorAll('input, select, textarea').forEach(el => {
-        if (['save-filename', 'char-select', 'roll-diff', 'use-specialty', 'c-path-name', 'c-path-name-create', 'c-bearing-name', 'c-bearing-value', 'custom-weakness-input', 'xp-points-input', 'blood-per-turn-input', 'custom-dice-input', 'spend-willpower', 'c-xp-total', 'frenzy-diff', 'rotschreck-diff', 'play-merit-notes', 'dmg-input-val', 'tray-use-armor',
-        // Journal Inputs Exemption
-        'log-sess-num', 'log-date', 'log-game-date', 'log-title', 'log-effects', 'log-scene1', 'log-scene2', 'log-scene3', 'log-scene-outcome', 'log-xp-gain',
-        'log-obj', 'log-clues', 'log-secrets', 'log-downtime'
+        // Whitelist for inputs that must remain active in Play Mode
+        if ([
+            'save-filename', 'char-select', 'roll-diff', 'use-specialty', 
+            'c-path-name', 'c-path-name-create', 'c-bearing-name', 'c-bearing-value', 
+            'custom-weakness-input', 'xp-points-input', 'blood-per-turn-input', 
+            'custom-dice-input', 'spend-willpower', 'c-xp-total', 
+            'frenzy-diff', 'rotschreck-diff', 'play-merit-notes', 'dmg-input-val', 
+            'tray-use-armor', 'potence-toggle', 'setite-sunlight-toggle', 
+            'setite-light-toggle', 'tzimisce-soil-days',
+            // Journal Inputs
+            'log-sess-num', 'log-date', 'log-game-date', 'log-title', 'log-effects', 
+            'log-scene1', 'log-scene2', 'log-scene3', 'log-scene-outcome', 
+            'log-xp-gain', 'log-obj', 'log-clues', 'log-secrets', 'log-downtime'
         ].includes(el.id) || el.classList.contains('merit-flaw-desc') || el.closest('#active-log-form')) {
             el.disabled = false;
             return;
@@ -338,7 +347,7 @@ export function applyPlayModeUI() {
 
         if(window.changeStep) window.changeStep(1); 
         
-        if (!localStorage.getItem('v20_play_tutorial_complete')) {
+        if (!localStorage.getItem('revised_play_tutorial_complete')) {
             setTimeout(() => {
                 if (window.startTutorial) window.startTutorial('play');
             }, 1000);
@@ -610,13 +619,14 @@ function renderPlayModeCombat() {
         `;
         cp.appendChild(initRow);
 
+        // REVISED EDITION STANDARD MANEUVERS (p. 213)
         const standards = [
-            {n:'Bite', diff:6, dmg:'Str+1(A)', attr:'Dexterity', abil:'Brawl'},
+            {n:'Bite', diff:5, dmg:'Str+1(A)', attr:'Dexterity', abil:'Brawl'}, // Revised Diff 5
             {n:'Block', diff:6, dmg:'None (R)', attr:'Dexterity', abil:'Brawl'},
             {n:'Claw', diff:6, dmg:'Str+1(A)', attr:'Dexterity', abil:'Brawl'},
-            {n:'Clinch', diff:6, dmg:'Str(C)', attr:'Strength', abil:'Brawl'},
+            {n:'Grapple', diff:6, dmg:'Str(B)', attr:'Strength', abil:'Brawl'}, // Renamed from Clinch
             {n:'Disarm', diff:7, dmg:'Special', attr:'Dexterity', abil:'Melee'},
-            {n:'Dodge', diff:6, dmg:'None (R)', attr:'Dexterity', abil:'Athletics'},
+            {n:'Dodge', diff:6, dmg:'None (R)', attr:'Dexterity', abil:'Dodge'}, // Revised uses Dodge
             {n:'Hold', diff:6, dmg:'None (C)', attr:'Strength', abil:'Brawl'},
             {n:'Kick', diff:7, dmg:'Str+1', attr:'Dexterity', abil:'Brawl'},
             {n:'Parry', diff:6, dmg:'None (R)', attr:'Dexterity', abil:'Melee'},
