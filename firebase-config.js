@@ -20,11 +20,11 @@ import {
     getDocs, 
     query, 
     deleteDoc,
-    where // ADDED THIS EXPORT
+    where 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // FIREBASE CONFIGURATION
-// Extracted from your original script.js
+// We keep the same project configuration so you don't need a new Google Cloud setup.
 const firebaseConfig = {
   apiKey: "AIzaSyB8qLWOiC3csqPnucbj3XOtireOgPjjL_k",
   authDomain: "v20-character-creator.firebaseapp.com",
@@ -39,7 +39,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = 'v20-neonate-sheet';
+
+// --- CHANGED FOR REVISED EDITION ---
+// This unique ID ensures data for this app is stored separately from the V20 app.
+const appId = 'vtm-revised-sheet'; 
+
 const googleProvider = new GoogleAuthProvider();
 
 // EXPORT SERVICES AND FUNCTIONS
@@ -58,7 +62,7 @@ export {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     
-    // FIRESTORE FUNCTIONS (Re-exported for Manager)
+    // FIRESTORE FUNCTIONS
     doc, 
     setDoc, 
     getDoc, 
@@ -66,5 +70,5 @@ export {
     getDocs, 
     query, 
     deleteDoc,
-    where // EXPORTED HERE TO FIX ERROR
+    where
 };
