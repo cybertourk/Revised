@@ -1,0 +1,1372 @@
+import { 
+    ATTRIBUTES, ABILITIES, VIRTUES, 
+    GEN_LIMITS, HEALTH_STATES, SPECIALTY_EXAMPLES, 
+    CLAN_DISCIPLINES, CLAN_WEAKNESSES 
+} from "./data.js";
+
+import { 
+    getXpCost,
+    BROAD_ABILITIES
+} from "./v20-rules.js";
+
+import { 
+    renderDots, renderBoxes, showNotification, setSafeText, renderSocialProfile 
+} from "./ui-common.js";
+
+// --- NEW IMPORT FOR PRINT SHEET SYNC ---
+import { renderPrintSheet } from "./ui-print.js";
+
+
+// --- CLAN MECHANICS UI HELPER ---
+function updateClanMechanicsUI() {
+    const clan = window.state.textFields['c-clan'] || document.getElementById('c-clan')?.value || "None";
+    
+    // --- 1. FOLLOWERS OF SET: SUNLIGHT DAMAGE TOGGLE ---
+    const dmgInput = document.getElementById('dmg-input-val');
+    if (dmgInput && dmgInput.parentNode) {
+        let sunWrapper = document.getElementById('setite-sunlight-wrapper');
+        
+        if (clan === "Followers of Set") {
+            if (!sunWrapper) {
+                sunWrapper = document.createElement('div');
+                sunWrapper.id = 'setite-sunlight-wrapper';
+                sunWrapper.className = "flex items-center gap-1 mt-2 justify-center animate-in fade-in bg-orange-900/50 p-1 rounded border border-orange-800/50 relative z-20";
+                sunWrapper.innerHTML = `
+                    <input type="checkbox" id="setite-sunlight-toggle" class="accent-orange-500 w-3 h-3 cursor-pointer pointer-events-auto">
+                    <label for="setite-sunlight-toggle" class="text-[9px] text-orange-400 font-bold uppercase cursor-pointer select-none">Sunlight Exposure (+2 Dmg)</label>
+                `;
+                dmgInput.parentNode.appendChild(sunWrapper);
+            }
+            sunWrapper.style.display = 'flex';
+        } else {
+            if (sunWrapper) sunWrapper.style.display = 'none';
+        }
+    }
+
+    // --- 2. CLAN DICE TRAY MODIFIERS ---
+    const tray = document.getElementById('dice-tray');
+    if (tray) {
+        // A. FOLLOWERS OF SET: BRIGHT LIGHT PENALTY
+        let lightWrapper = document.getElementById('setite-light-wrapper');
+        
+        if (clan === "Followers of Set") {
+            if (!lightWrapper) {
+                lightWrapper = document.createElement('div');
+                lightWrapper.id = 'setite-light-wrapper';
+                lightWrapper.className = "flex items-center gap-2 mb-2 px-3 py-2 bg-yellow-900/60 border border-yellow-500/50 rounded flex animate-in fade-in relative z-20 shadow-sm";
+                lightWrapper.innerHTML = `
+                    <input type="checkbox" id="setite-light-toggle" class="accent-yellow-500 w-4 h-4 cursor-pointer pointer-events-auto ring-1 ring-yellow-500/50">
+                    <label for="setite-light-toggle" class="text-[10px] text-yellow-300 font-bold uppercase cursor-pointer select-none tracking-tight hover:text-white">Bright Light (-1 Die)</label>
+                `;
+                
+                const rollBtn = document.getElementById('roll-btn');
+                if (rollBtn) {
+                     const row = rollBtn.closest('.flex'); 
+                     if(row) tray.insertBefore(lightWrapper, row);
+                     else tray.appendChild(lightWrapper);
+                } else {
+                    tray.appendChild(lightWrapper);
+                }
+            }
+            lightWrapper.style.display = 'flex';
+        } else {
+            if (lightWrapper) lightWrapper.style.display = 'none';
+        }
+
+        // B. TZIMISCE: NATIVE SOIL WEAKNESS
+        let tzimisceWrapper = document.getElementById('tzimisce-soil-wrapper');
+        
+        if (clan === "Tzimisce") {
+            if (!tzimisceWrapper) {
+                tzimisceWrapper = document.createElement('div');
+                tzimisceWrapper.id = 'tzimisce-soil-wrapper';
+                // Purple styling for Tzimisce
+                tzimisceWrapper.className = "flex items-center justify-between gap-2 mb-2 px-3 py-2 bg-[#2d1b3e] border border-[#a855f7]/50 rounded flex animate-in fade-in relative z-20 shadow-sm";
+                tzimisceWrapper.innerHTML = `
+                    <label for="tzimisce-soil-days" class="text-[10px] text-[#e9d5ff] font-bold uppercase cursor-pointer select-none tracking-tight">Days Away from Native Soil</label>
+                    <input type="number" id="tzimisce-soil-days" min="0" value="0" class="w-12 text-center bg-black/50 border border-[#a855f7]/50 text-white text-[10px] font-bold rounded p-1 focus:outline-none focus:border-[#a855f7]">
+                `;
+                
+                const rollBtn = document.getElementById('roll-btn');
+                if (rollBtn) {
+                     const row = rollBtn.closest('.flex'); 
+                     if(row) tray.insertBefore(tzimisceWrapper, row);
+                     else tray.appendChild(tzimisceWrapper);
+                } else {
+                    tray.appendChild(tzimisceWrapper);
+                }
+            }
+            tzimisceWrapper.style.display = 'flex';
+        } else {
+            if (tzimisceWrapper) tzimisceWrapper.style.display = 'none';
+        }
+    }
+
+    // --- 3. CLAN ACTION PANELS (PLAY MODE) ---
+    
+    // TARGET CONTAINER LOGIC:
+    let weaknessContainer = document.getElementById('weakness-play-container');
+    const fallbackContainer = document.getElementById('health-chart-play')?.parentNode;
+
+    // TARGET FOR GANGREL (Column 3 - Beast Container)
+    let beastContainer = document.getElementById('beast-play-container');
+    if (!beastContainer && fallbackContainer) beastContainer = fallbackContainer;
+
+    // A. GANGREL: BEAST TRAITS PANEL (Keep in Col 3)
+    let gangrelPanel = document.getElementById('gangrel-beast-panel');
+    if (clan === "Gangrel") {
+        if (!gangrelPanel) {
+            gangrelPanel = document.createElement('div');
+            gangrelPanel.id = 'gangrel-beast-panel';
+            gangrelPanel.className = "mt-4 p-3 bg-[#1a1a1a] border border-[#8b0000] rounded shadow-lg animate-in fade-in";
+            
+            if(beastContainer) beastContainer.appendChild(gangrelPanel);
+        }
+        gangrelPanel.style.display = 'block';
+        renderGangrelPanel(gangrelPanel);
+    } else {
+        if (gangrelPanel) gangrelPanel.style.display = 'none';
+    }
+
+    // B. TOREADOR: ENRAPTURE PANEL (Col 1)
+    let toreadorPanel = document.getElementById('toreador-action-panel');
+    if (clan === "Toreador") {
+        if (!toreadorPanel) {
+            toreadorPanel = document.createElement('div');
+            toreadorPanel.id = 'toreador-action-panel';
+            toreadorPanel.className = "mt-4 p-3 bg-[#3e1b28] border border-[#f472b6] rounded shadow-lg animate-in fade-in";
+            toreadorPanel.innerHTML = `
+                <div class="text-[#fbcfe8] font-bold text-xs uppercase mb-2 border-b border-[#831843] pb-1">Clan Weakness: Enrapture</div>
+                <div class="text-[10px] text-gray-300 mb-2 italic">Difficulty 6 Self-Control/Instincts to resist becoming enraptured by beauty.</div>
+                <button onclick="window.setupToreadorWeakness()" class="w-full bg-[#831843] hover:bg-[#be185d] text-white text-[10px] font-bold px-3 py-2 rounded transition-colors uppercase border border-[#f472b6] shadow-md hover:shadow-lg transform active:scale-95">
+                    Resist Enrapture
+                </button>
+            `;
+            
+            if(weaknessContainer) weaknessContainer.appendChild(toreadorPanel);
+            else if(fallbackContainer) fallbackContainer.appendChild(toreadorPanel);
+        }
+        toreadorPanel.style.display = 'block';
+    } else {
+        if (toreadorPanel) toreadorPanel.style.display = 'none';
+    }
+
+    // C. RAVNOS: VICE PANEL (Col 1)
+    let ravnosPanel = document.getElementById('ravnos-action-panel');
+    if (clan === "Ravnos") {
+        if (!ravnosPanel) {
+            ravnosPanel = document.createElement('div');
+            ravnosPanel.id = 'ravnos-action-panel';
+            ravnosPanel.className = "mt-4 p-3 bg-[#4a0404] border border-[#f87171] rounded shadow-lg animate-in fade-in";
+            ravnosPanel.innerHTML = `
+                <div class="text-[#fca5a5] font-bold text-xs uppercase mb-2 border-b border-[#7f1d1d] pb-1">Clan Weakness: Vice</div>
+                <div class="text-[10px] text-gray-300 mb-2 italic">Difficulty 6 Self-Control/Instincts to resist indulging in your specific vice.</div>
+                <div class="flex flex-col gap-2">
+                    <input type="text" id="ravnos-vice-input-panel" placeholder="Specific Vice (e.g. Theft)" class="w-full bg-black/50 border border-[#f87171]/50 text-white text-[10px] px-2 py-1 rounded focus:outline-none focus:border-[#f87171]">
+                    <button onclick="window.setupRavnosWeakness()" class="w-full bg-[#7f1d1d] hover:bg-[#991b1b] text-white text-[10px] font-bold px-3 py-2 rounded transition-colors uppercase border border-[#f87171] shadow-md hover:shadow-lg transform active:scale-95">
+                        Resist Vice
+                    </button>
+                </div>
+            `;
+            
+            if(weaknessContainer) weaknessContainer.appendChild(ravnosPanel);
+            else if(fallbackContainer) fallbackContainer.appendChild(ravnosPanel);
+        }
+        ravnosPanel.style.display = 'block';
+    } else {
+        if (ravnosPanel) ravnosPanel.style.display = 'none';
+    }
+
+    // --- 4. NOSFERATU: APPEARANCE ENFORCEMENT & VISUALS ---
+    if(window.refreshTraitRow) window.refreshTraitRow("Appearance", "attr");
+
+    // Force data consistency
+    if (clan === "Nosferatu") {
+        if (window.state.dots.attr["Appearance"] > 0) {
+            window.state.dots.attr["Appearance"] = 0;
+            if(window.refreshTraitRow) window.refreshTraitRow("Appearance", "attr");
+        }
+    }
+}
+window.updateClanMechanicsUI = updateClanMechanicsUI;
+
+// --- GANGREL HELPER FUNCTIONS ---
+function renderGangrelPanel(container) {
+    if (!window.state.beastTraits) window.state.beastTraits = [];
+    
+    const traits = window.state.beastTraits;
+    
+    let listHTML = `<div class="text-[#d4af37] font-bold text-xs uppercase mb-2 border-b border-[#333] pb-1 flex justify-between items-center">
+        <span>Gangrel Beast Traits</span>
+        <span class="text-[9px] text-gray-400">Weakness</span>
+    </div>`;
+    
+    if (traits.length === 0) {
+        listHTML += `<div class="text-gray-500 text-[10px] italic text-center py-2">No animal traits acquired... yet.</div>`;
+    } else {
+        listHTML += `<div class="space-y-2 mb-3">`;
+        traits.forEach((t, idx) => {
+            const isPerm = t.type === 'Permanent';
+            listHTML += `
+            <div class="bg-black/40 p-2 rounded border ${isPerm ? 'border-red-900' : 'border-gray-700'} relative group">
+                <div class="flex justify-between items-start">
+                    <span class="text-[#d4af37] font-bold text-[11px]">${t.name}</span>
+                    <span class="text-[9px] ${isPerm ? 'text-red-500 font-bold' : 'text-gray-400'} uppercase">${t.type}</span>
+                </div>
+                <div class="text-gray-300 text-[10px] mt-1 italic">${t.effect}</div>
+                <button onclick="window.removeBeastTrait(${idx})" class="absolute top-1 right-1 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>`;
+        });
+        listHTML += `</div>`;
+    }
+    
+    listHTML += `
+    <div class="mt-2 pt-2 border-t border-[#333]">
+        <div class="text-[9px] text-gray-400 mb-1">Add New Trait (Frenzy Result)</div>
+        <div class="grid grid-cols-1 gap-2">
+            <input type="text" id="gt-name" placeholder="Trait (e.g. Wolf Ears)" class="w-full bg-black/50 border border-gray-700 text-gray-300 text-[10px] px-2 py-1 rounded focus:border-[#d4af37] outline-none">
+            <input type="text" id="gt-effect" placeholder="Effect (e.g. -1 Social)" class="w-full bg-black/50 border border-gray-700 text-gray-300 text-[10px] px-2 py-1 rounded focus:border-[#d4af37] outline-none">
+            <div class="flex gap-2">
+                <select id="gt-type" class="bg-black/50 border border-gray-700 text-gray-300 text-[10px] px-2 py-1 rounded focus:border-[#d4af37] outline-none flex-1">
+                    <option value="Temporary">Temporary</option>
+                    <option value="Permanent">Permanent</option>
+                </select>
+                <button onclick="window.addBeastTrait()" class="bg-[#8b0000] hover:bg-[#a00000] text-white text-[10px] font-bold px-3 py-1 rounded transition-colors">ADD</button>
+            </div>
+        </div>
+    </div>`;
+    
+    container.innerHTML = listHTML;
+}
+
+window.addBeastTrait = function() {
+    const name = document.getElementById('gt-name')?.value;
+    const effect = document.getElementById('gt-effect')?.value;
+    const type = document.getElementById('gt-type')?.value;
+    
+    if(!name || !effect) {
+        showNotification("Please enter Name and Effect.");
+        return;
+    }
+    
+    window.state.beastTraits.push({ name, effect, type });
+    showNotification("Beast Trait Added.");
+    
+    const panel = document.getElementById('gangrel-beast-panel');
+    if(panel) renderGangrelPanel(panel);
+    if(renderPrintSheet) renderPrintSheet();
+};
+
+window.removeBeastTrait = function(idx) {
+    if(confirm("Remove this Beast Trait?")) {
+        window.state.beastTraits.splice(idx, 1);
+        const panel = document.getElementById('gangrel-beast-panel');
+        if(panel) renderGangrelPanel(panel);
+        if(renderPrintSheet) renderPrintSheet();
+    }
+};
+
+// --- DERANGEMENT MANAGEMENT (Shared + Malkavian Logic) ---
+
+window.addDerangement = function() {
+    const input = document.getElementById('derangement-input') || document.getElementById('malk-new-d');
+    const val = input?.value;
+    if (!val) {
+        showNotification("Enter a Derangement name.");
+        return;
+    }
+    
+    if (!window.state.derangements) window.state.derangements = [];
+    window.state.derangements.push(val);
+    
+    const clan = window.state.textFields['c-clan'] || document.getElementById('c-clan')?.value || "None";
+    if (clan === "Malkavian" && window.state.derangements.length === 1) {
+        showNotification("Primary Incurable Derangement Set.");
+    } else {
+        showNotification("Derangement Added.");
+    }
+    
+    if(input) input.value = '';
+    
+    if(window.renderSocialProfile) window.renderSocialProfile(); 
+    if(renderPrintSheet) renderPrintSheet();
+    if(window.renderBioTab) window.renderBioTab();
+};
+
+window.removeDerangement = function(idx) {
+    const clan = window.state.textFields['c-clan'] || document.getElementById('c-clan')?.value || "None";
+    
+    if (clan === "Malkavian" && idx === 0) {
+        showNotification("Malkavian Weakness: Cannot remove the original Incurable Derangement!");
+        return;
+    }
+    
+    if(confirm("Remove this Derangement?")) {
+        window.state.derangements.splice(idx, 1);
+        if(window.renderSocialProfile) window.renderSocialProfile();
+        if(renderPrintSheet) renderPrintSheet();
+        if(window.renderBioTab) window.renderBioTab();
+    }
+};
+
+window.suppressDerangement = function() {
+    if ((window.state.status.tempWillpower || 0) > 0) {
+        window.state.status.tempWillpower--;
+        // Use Global updatePools from ui-renderer
+        if(window.updatePools) window.updatePools(); 
+        if(renderPrintSheet) renderPrintSheet();
+        showNotification("Spent 1 WP: Derangements suppressed for 1 Scene.");
+    } else {
+        showNotification("Not enough Willpower!");
+    }
+};
+
+
+// --- DICE & POOL MECHANICS ---
+
+export function clearPool() {
+    window.state.activePool = [];
+    document.querySelectorAll('.trait-label').forEach(el => el.classList.remove('selected'));
+    setSafeText('pool-display', "Select traits to build pool...");
+    
+    const hint = document.getElementById('specialty-hint'); 
+    if(hint) hint.innerHTML = '';
+    
+    const cb = document.getElementById('use-specialty'); 
+    if(cb) cb.checked = false;
+    
+    const slider = document.getElementById('custom-dice-input');
+    if(slider) {
+        slider.value = 0;
+        const valDisplay = document.getElementById('bonus-dice-val');
+        if(valDisplay) valDisplay.innerText = "0";
+    }
+    
+    const wpCont = document.getElementById('willpower-spend-container');
+    if(wpCont) {
+        wpCont.style.display = 'flex';
+        const wpCheck = document.getElementById('spend-willpower');
+        if(wpCheck) {
+            wpCheck.checked = false;
+            wpCheck.disabled = false;
+        }
+        const wpLabel = document.querySelector('label[for="spend-willpower"]');
+        if(wpLabel) wpLabel.innerText = "Spend Willpower (Auto Success)";
+    }
+    
+    const armorCont = document.getElementById('tray-armor-toggle-container');
+    if(armorCont) armorCont.style.display = 'none';
+
+    const lightToggle = document.getElementById('setite-light-toggle');
+    if (lightToggle) lightToggle.checked = false;
+
+    updateClanMechanicsUI();
+
+    document.getElementById('dice-tray').classList.remove('open');
+}
+window.clearPool = clearPool;
+
+
+export function handleTraitClick(name, type) {
+    const armorCont = document.getElementById('tray-armor-toggle-container');
+    if(armorCont && armorCont.style.display !== 'none') {
+        window.clearPool();
+    }
+
+    const val = window.state.dots[type][name] || 0;
+    const existingIdx = window.state.activePool.findIndex(p => p.name === name);
+    
+    if (existingIdx > -1) {
+        window.state.activePool.splice(existingIdx, 1);
+    } else { 
+        if (window.state.activePool.length >= 2) window.state.activePool.shift(); 
+        window.state.activePool.push({name, val}); 
+    }
+    
+    document.querySelectorAll('.trait-label').forEach(el => el.classList.toggle('selected', window.state.activePool.some(p => p.name === el.innerText)));
+    
+    const display = document.getElementById('pool-display');
+    const hint = document.getElementById('specialty-hint');
+    
+    if (!hint && display) {
+        const hDiv = document.createElement('div'); 
+        hDiv.id = 'specialty-hint'; 
+        hDiv.className = 'text-[9px] text-[#4ade80] mt-1 h-4 flex items-center';
+        display.parentNode.insertBefore(hDiv, display.nextSibling);
+    }
+    
+    if (window.state.activePool.length > 0) {
+        setSafeText('pool-display', window.state.activePool.map(p => `${p.name} (${p.val})`).join(' + '));
+        
+        const specs = window.state.activePool.map(p => window.state.specialties[p.name]).filter(s => s); 
+        const hintEl = document.getElementById('specialty-hint');
+        
+        if (hintEl) {
+            if (specs.length > 0) {
+                 const isApplied = document.getElementById('use-specialty')?.checked;
+                 if(isApplied) {
+                     hintEl.innerHTML = `<span class="text-[#d4af37] font-bold">Specialty Active! (10s = 2 Successes)</span>`;
+                 } else {
+                     hintEl.innerHTML = `<span>Possible Specialty: ${specs.join(', ')}</span><button id="apply-spec-btn" class="ml-2 bg-[#d4af37] text-black px-1 rounded hover:bg-white pointer-events-auto text-[9px] font-bold uppercase">APPLY</button>`;
+                     const btn = document.getElementById('apply-spec-btn');
+                     if(btn) btn.onclick = (e) => { 
+                         e.stopPropagation(); 
+                         const cb = document.getElementById('use-specialty'); 
+                         if(cb) { 
+                             cb.checked = true; 
+                             window.showNotification(`Applied: ${specs.join(', ')}`); 
+                             hintEl.innerHTML = `<span class="text-[#d4af37] font-bold">Specialty Active! (10s = 2 Successes)</span>`; 
+                         } 
+                     };
+                 }
+            } else {
+                hintEl.innerHTML = '';
+            }
+        }
+        document.getElementById('dice-tray').classList.add('open');
+        updateClanMechanicsUI(); 
+    } else {
+        window.clearPool();
+    }
+}
+window.handleTraitClick = handleTraitClick;
+
+// ADDED: Direct toggle function for NPCs or manual overrides (accepts rating directly)
+export function toggleStat(name, rating, type) {
+    const armorCont = document.getElementById('tray-armor-toggle-container');
+    if(armorCont && armorCont.style.display !== 'none') {
+        window.clearPool();
+    }
+
+    const val = parseInt(rating) || 0;
+    
+    const existingIdx = window.state.activePool.findIndex(p => p.name === name);
+    
+    if (existingIdx > -1) {
+        window.state.activePool.splice(existingIdx, 1);
+    } else { 
+        if (window.state.activePool.length >= 2) window.state.activePool.shift(); 
+        window.state.activePool.push({name, val}); 
+    }
+    
+    document.querySelectorAll('.trait-label').forEach(el => el.classList.toggle('selected', window.state.activePool.some(p => p.name === el.innerText)));
+    
+    const display = document.getElementById('pool-display');
+    const hint = document.getElementById('specialty-hint');
+    
+    if (!hint && display) {
+        const hDiv = document.createElement('div'); 
+        hDiv.id = 'specialty-hint'; 
+        hDiv.className = 'text-[9px] text-[#4ade80] mt-1 h-4 flex items-center';
+        display.parentNode.insertBefore(hDiv, display.nextSibling);
+    }
+    
+    if (window.state.activePool.length > 0) {
+        setSafeText('pool-display', window.state.activePool.map(p => `${p.name} (${p.val})`).join(' + '));
+        const hintEl = document.getElementById('specialty-hint');
+        if (hintEl) hintEl.innerHTML = ''; 
+        
+        document.getElementById('dice-tray').classList.add('open');
+        if(typeof updateClanMechanicsUI === 'function') updateClanMechanicsUI();
+    } else {
+        window.clearPool();
+    }
+}
+window.toggleStat = toggleStat;
+
+
+export function rollPool() {
+    // --- SPECIAL ROLL INTERCEPTION: INITIATIVE ---
+    // Check if the current pool contains an Initiative entry
+    const initiativeItem = window.state.activePool.find(p => p.name.includes("Initiative"));
+    
+    if (initiativeItem) {
+        // ROBUST PARSING: Prefer direct value, fallback to Regex parsing for legacy support
+        let mod = initiativeItem.val;
+        
+        // If val is 0, check if we need to parse it from the name (legacy behavior)
+        if (mod === 0 && initiativeItem.name.includes("(")) {
+            const match = initiativeItem.name.match(/[+(]\s*\+?\s*(\d+)/);
+            if (match) mod = parseInt(match[1]);
+        }
+        
+        // Roll 1d10
+        const die = Math.floor(Math.random() * 10) + 1;
+        const total = die + mod;
+        
+        // Render Result immediately
+        const tray = document.getElementById('roll-results');
+        const row = document.createElement('div');
+        row.className = 'bg-black/60 p-2 border border-[#333] text-[10px] mb-2 animate-in fade-in slide-in-from-right-4 duration-300';
+        
+        row.innerHTML = `
+            <div class="flex justify-between border-b border-[#444] pb-1 mb-1">
+                <span class="text-[#d4af37] font-bold uppercase">Initiative Roll</span>
+                <span class="text-white font-black text-sm">${total}</span>
+            </div>
+            <div class="tracking-widest flex flex-wrap justify-center py-2 items-center gap-2">
+                <span class="text-gray-400 font-bold bg-black/50 px-2 py-1 rounded">1d10 <span class="text-white">(${die})</span></span>
+                <span class="text-gray-500 font-black">+</span>
+                <span class="text-[#d4af37] font-bold">${mod}</span>
+                <span class="text-gray-500 font-black">=</span>
+                <span class="text-[#4ade80] font-black text-lg border border-[#d4af37] px-3 py-1 rounded bg-[#d4af37]/10">${total}</span>
+            </div>
+            <div class="text-[9px] text-gray-500 italic text-center mt-1">Declare actions in reverse order (Lowest to Highest). Resolve Highest to Lowest.</div>
+        `;
+        
+        tray.insertBefore(row, tray.firstChild);
+        return; // EXIT FUNCTION: Skip standard success counting
+    }
+
+    // --- STANDARD DICE POOL LOGIC ---
+    const spendWP = document.getElementById('spend-willpower')?.checked;
+    let autoSuccesses = 0;
+    
+    if (spendWP) {
+        if ((window.state.status.tempWillpower || 0) > 0) {
+             window.state.status.tempWillpower--;
+             autoSuccesses = 1;
+             // Use Global updatePools from ui-renderer
+             if(window.updatePools) window.updatePools(); 
+             window.showNotification("Willpower spent: +1 Auto Success");
+             document.getElementById('spend-willpower').checked = false; 
+        } else {
+            window.showNotification("Cannot spend Willpower: Pool is empty!");
+            document.getElementById('spend-willpower').checked = false;
+            return; 
+        }
+    }
+
+    const custom = parseInt(document.getElementById('custom-dice-input')?.value) || 0;
+    let poolSize = window.state.activePool.reduce((a,b) => a + b.val, 0) + custom;
+    
+    // --- CLAN WEAKNESSES: POOL MODIFIERS ---
+    const clan = window.state.textFields['c-clan'] || "None";
+    
+    const lightToggle = document.getElementById('setite-light-toggle');
+    if (clan === "Followers of Set" && lightToggle && lightToggle.checked) {
+        poolSize -= 1;
+    }
+
+    const soilDaysInput = document.getElementById('tzimisce-soil-days');
+    if (clan === "Tzimisce" && soilDaysInput) {
+        const daysAway = parseInt(soilDaysInput.value) || 0;
+        if (daysAway > 0) {
+            for(let i=0; i<daysAway; i++) {
+                poolSize = Math.floor(poolSize / 2);
+            }
+            if(poolSize < 1) poolSize = 1;
+        }
+    }
+
+    if (poolSize <= 0 && autoSuccesses === 0) { 
+        window.showNotification("Pool Empty (or reduced to 0)"); 
+        return; 
+    }
+    
+    const diff = parseInt(document.getElementById('roll-diff').value) || 6;
+    const isSpec = document.getElementById('use-specialty').checked;
+    
+    let results = [], ones = 0, rawSuccesses = 0;
+    for(let i=0; i<poolSize; i++) {
+        const die = Math.floor(Math.random() * 10) + 1;
+        results.push(die);
+        if (die === 1) ones++;
+        if (die >= diff) { 
+            if (isSpec && die === 10) rawSuccesses += 2; 
+            else rawSuccesses += 1; 
+        }
+    }
+    
+    let net = Math.max(0, rawSuccesses - ones);
+    
+    net += autoSuccesses;
+
+    let outcome = "", outcomeClass = "";
+    
+    if (rawSuccesses === 0 && autoSuccesses === 0 && ones > 0) { 
+        outcome = "BOTCH"; outcomeClass = "dice-botch"; 
+    } 
+    else if (net <= 0) { 
+        outcome = "FAILURE"; outcomeClass = "text-gray-400"; 
+    } 
+    else { 
+        outcome = `${net} SUCCESS${net > 1 ? 'ES' : ''}`; outcomeClass = "dice-success"; 
+    }
+    
+    const tray = document.getElementById('roll-results');
+    const row = document.createElement('div');
+    row.className = 'bg-black/60 p-2 border border-[#333] text-[10px] mb-2 animate-in fade-in slide-in-from-right-4 duration-300';
+    
+    const diceRender = results.map(d => {
+        let c = 'text-gray-500';
+        if (d === 1) c = 'text-[#ff0000] font-bold';
+        else if (d >= diff) { 
+            c = 'text-[#d4af37] font-bold'; 
+            if (d === 10 && isSpec) c = 'text-[#4ade80] font-black'; 
+        }
+        return `<span class="${c} text-3xl mx-1">${d}</span>`;
+    }).join(' ');
+
+    let extras = "";
+    if (autoSuccesses > 0) extras += `<div class="text-[9px] text-blue-300 font-bold mt-1 text-center border-t border-[#333] pt-1 uppercase">Willpower Applied (+1 Success)</div>`;
+    
+    if (clan === "Followers of Set" && lightToggle && lightToggle.checked) {
+        extras += `<div class="text-[9px] text-yellow-500 font-bold mt-1 text-center border-t border-[#333] pt-1 uppercase">Bright Light Penalty (-1 Die)</div>`;
+    }
+    if (clan === "Tzimisce" && soilDaysInput && parseInt(soilDaysInput.value) > 0) {
+        const days = parseInt(soilDaysInput.value);
+        extras += `<div class="text-[9px] text-[#a855f7] font-bold mt-1 text-center border-t border-[#333] pt-1 uppercase">Away From Soil (${days} days): Pool Halved</div>`;
+    }
+
+    row.innerHTML = `<div class="flex justify-between border-b border-[#444] pb-1 mb-1"><span class="text-gray-400">Diff ${diff}${isSpec ? '*' : ''}</span><span class="${outcomeClass} font-black text-sm">${outcome}</span></div><div class="tracking-widest flex flex-wrap justify-center py-2">${diceRender}</div>${extras}`;
+    tray.insertBefore(row, tray.firstChild);
+}
+window.rollPool = rollPool;
+
+
+export function rollCombat(name, diff, attr, ability) {
+    window.clearPool();
+    const attrVal = window.state.dots.attr[attr] || 1;
+    window.state.activePool.push({name: attr, val: attrVal});
+    
+    const abilVal = window.state.dots.abil[ability] || 0;
+    window.state.activePool.push({name: ability, val: abilVal});
+    
+    document.querySelectorAll('.trait-label').forEach(el => {
+        if (el.innerText === attr || el.innerText === ability) el.classList.add('selected');
+        else el.classList.remove('selected');
+    });
+    
+    const diffInput = document.getElementById('roll-diff');
+    if (diffInput) diffInput.value = diff;
+    
+    const display = document.getElementById('pool-display');
+    if (display) setSafeText('pool-display', `${attr} (${attrVal}) + ${ability} (${abilVal})`);
+    
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.add('open');
+}
+window.rollCombat = rollCombat;
+
+// --- ADDED INITIATIVE FUNCTION ---
+export function rollInitiative(rating) {
+    window.clearPool();
+    // Add Special "Initiative" item to pool with rating as value
+    window.state.activePool.push({name: "Initiative", val: rating});
+    
+    const display = document.getElementById('pool-display');
+    if (display) {
+        setSafeText('pool-display', `Initiative Rating: ${rating}`);
+        display.classList.add('text-yellow-500');
+    }
+    
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.add('open');
+}
+window.rollInitiative = rollInitiative;
+
+// --- NEW: ROLL DISCIPLINE FUNCTION ---
+export function rollDiscipline(powerName, poolKeys, defaultDiff) {
+    window.clearPool();
+    
+    let displayParts = [];
+    
+    poolKeys.forEach(key => {
+        // Search Attributes
+        let val = window.state.dots.attr[key];
+        
+        // Search Abilities
+        if (val === undefined) val = window.state.dots.abil[key];
+        
+        // Search Virtues
+        if (val === undefined) val = window.state.dots.virt[key];
+        
+        // Fallback or specific lookups (Self-Control vs Instincts, etc.)
+        if (key === 'Self-Control/Instinct') {
+            const hasInstinct = window.state.dots.virt['Instincts'] > 0;
+            key = hasInstinct ? 'Instincts' : 'Self-Control';
+            val = window.state.dots.virt[key] || 1;
+        }
+        
+        if (val === undefined) val = 0; // Default if not found
+        
+        window.state.activePool.push({name: key, val: val});
+        displayParts.push(`${key} (${val})`);
+    });
+    
+    const diffInput = document.getElementById('roll-diff');
+    if (diffInput) diffInput.value = defaultDiff;
+    
+    const display = document.getElementById('pool-display');
+    if (display) {
+        setSafeText('pool-display', `${powerName}: ${displayParts.join(' + ')}`);
+        display.classList.add('text-purple-400');
+    }
+    
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.add('open');
+}
+window.rollDiscipline = rollDiscipline;
+
+
+export function toggleDiceTray() {
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.toggle('open');
+    if (tray.classList.contains('open')) {
+        updateClanMechanicsUI();
+    }
+}
+window.toggleDiceTray = toggleDiceTray;
+
+
+// --- FRENZY & RÖTSCHRECK ---
+
+export function rollFrenzy() {
+    window.clearPool();
+    const traitName = window.state.dots.virt["Instincts"] ? "Instincts" : "Self-Control";
+    const traitVal = window.state.dots.virt[traitName] || 1;
+    
+    window.state.activePool.push({name: traitName, val: traitVal});
+
+    const clan = window.state.textFields['c-clan'] || document.getElementById('c-clan')?.value || "None";
+    
+    let difficulty = 6; 
+    let diffMsg = "";
+
+    const diffInputOverride = document.getElementById('frenzy-diff');
+    if (diffInputOverride && diffInputOverride.value) {
+        difficulty = parseInt(diffInputOverride.value) || 6;
+        diffMsg = " (Custom)";
+    }
+
+    if (clan === "Brujah") {
+        difficulty += 2;
+        diffMsg += " (Brujah Curse)";
+        
+        const wpCheck = document.getElementById('spend-willpower');
+        if (wpCheck) {
+            wpCheck.checked = false;
+            wpCheck.disabled = true;
+        }
+        const wpLabel = document.querySelector('label[for="spend-willpower"]');
+        if (wpLabel) {
+            wpLabel.innerHTML = `<span class="text-red-500 font-black animate-pulse">BRUJAH: CANNOT SPEND WP</span>`;
+        }
+        window.showNotification("Brujah: +2 Diff, No Willpower");
+    }
+    
+    if (clan === "Gangrel") {
+        window.showNotification("GANGREL: If Frenzy occurs, you gain a Beast Trait!");
+        diffMsg += " (Gangrel: Beast Trait Risk)";
+    }
+
+    const diffInput = document.getElementById('roll-diff');
+    if (diffInput) diffInput.value = difficulty;
+
+    const display = document.getElementById('pool-display');
+    if (display) {
+        setSafeText('pool-display', `Frenzy Check: ${traitName} (${traitVal})`);
+        display.classList.add('text-red-500');
+    }
+
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.add('open');
+
+    showNotification(`Frenzy Pool Ready (Diff ${difficulty}${diffMsg}). Roll when ready.`);
+}
+window.rollFrenzy = rollFrenzy;
+
+
+export function rollRotschreck() {
+    window.clearPool();
+    const traitName = "Courage";
+    const traitVal = window.state.dots.virt[traitName] || 1;
+    
+    window.state.activePool.push({name: traitName, val: traitVal});
+    
+    let difficulty = 6;
+    const diffInputOverride = document.getElementById('rotschreck-diff');
+    if (diffInputOverride && diffInputOverride.value) {
+        difficulty = parseInt(diffInputOverride.value) || 6;
+    }
+
+    const diffInput = document.getElementById('roll-diff');
+    if (diffInput) diffInput.value = difficulty;
+    
+    const display = document.getElementById('pool-display');
+    if (display) {
+        setSafeText('pool-display', `Rötschreck Check: ${traitName} (${traitVal})`);
+        display.classList.add('text-orange-500');
+    }
+
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.add('open');
+
+    showNotification(`Fear Pool Ready (Diff ${difficulty}). Roll when ready.`);
+}
+window.rollRotschreck = rollRotschreck;
+
+// --- TOREADOR WEAKNESS SETUP ---
+export function setupToreadorWeakness() {
+    window.clearPool();
+    const traitName = window.state.dots.virt["Instincts"] ? "Instincts" : "Self-Control";
+    const traitVal = window.state.dots.virt[traitName] || 1;
+    
+    window.state.activePool.push({name: traitName, val: traitVal});
+    
+    const difficulty = 6;
+    const diffInput = document.getElementById('roll-diff');
+    if (diffInput) diffInput.value = difficulty;
+    
+    const display = document.getElementById('pool-display');
+    if (display) {
+        setSafeText('pool-display', `Toreador Weakness: ${traitName} (${traitVal})`);
+        display.classList.add('text-pink-400');
+    }
+
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.add('open');
+
+    showNotification(`Enrapture Pool Set (Diff 6). Click Roll.`);
+}
+window.setupToreadorWeakness = setupToreadorWeakness;
+
+// --- RAVNOS WEAKNESS SETUP ---
+export function setupRavnosWeakness() {
+    window.clearPool();
+    const traitName = window.state.dots.virt["Instincts"] ? "Instincts" : "Self-Control";
+    const traitVal = window.state.dots.virt[traitName] || 1;
+    
+    window.state.activePool.push({name: traitName, val: traitVal});
+    
+    const difficulty = 6;
+    const diffInput = document.getElementById('roll-diff');
+    if (diffInput) diffInput.value = difficulty;
+    
+    const viceInput = document.getElementById('ravnos-vice-input-panel'); 
+    const vice = viceInput && viceInput.value ? viceInput.value : "Vice";
+
+    const display = document.getElementById('pool-display');
+    if (display) {
+        setSafeText('pool-display', `Ravnos Weakness: ${traitName} (${traitVal})`);
+        display.classList.add('text-red-400');
+    }
+
+    const tray = document.getElementById('dice-tray');
+    if (tray) tray.classList.add('open');
+
+    showNotification(`Resist ${vice} Pool Set (Diff 6). Click Roll.`);
+}
+window.setupRavnosWeakness = setupRavnosWeakness;
+
+
+// --- DAMAGE HANDLING & SOAK ---
+
+export function applyDamage(typeStr) {
+    const typeMap = { 'Bashing': 1, 'Lethal': 2, 'Aggravated': 3 };
+    const val = typeMap[typeStr];
+    if(!val) return;
+
+    let amount = parseInt(document.getElementById('dmg-input-val')?.value) || 1;
+    
+    const clan = window.state.textFields['c-clan'] || "None";
+    const sunlightToggle = document.getElementById('setite-sunlight-toggle');
+    if (clan === "Followers of Set" && sunlightToggle && sunlightToggle.checked) {
+        amount += 2;
+        window.showNotification("Sunlight: +2 Health Levels (Setite Weakness)");
+    }
+
+    let currentHealth = (window.state.status.health_states && Array.isArray(window.state.status.health_states)) 
+        ? [...window.state.status.health_states] 
+        : [0,0,0,0,0,0,0];
+    
+    let damageList = currentHealth.filter(x => x > 0);
+    
+    for(let i=0; i<amount; i++) {
+        damageList.push(val);
+    }
+    
+    damageList.sort((a,b) => b - a);
+    
+    while(damageList.length > 7) {
+        damageList.pop();
+        window.showNotification("Health Track Full! Check Torpor/Death rules.");
+    }
+
+    let newStates = [0,0,0,0,0,0,0];
+    for(let i=0; i<7; i++) {
+        if(i < damageList.length) newStates[i] = damageList[i];
+        else newStates[i] = 0;
+    }
+    
+    window.state.status.health_states = newStates;
+    
+    if(renderPrintSheet) renderPrintSheet();
+    // Use Global updatePools from ui-renderer
+    if(window.updatePools) window.updatePools();
+}
+window.applyDamage = applyDamage;
+
+export function setupSoak() {
+    const wpCont = document.getElementById('willpower-spend-container');
+    if(wpCont) wpCont.style.display = 'none';
+
+    let trayArmorContainer = document.getElementById('tray-armor-toggle-container');
+    if (!trayArmorContainer) {
+        const tray = document.getElementById('dice-tray');
+        trayArmorContainer = document.createElement('div');
+        trayArmorContainer.id = 'tray-armor-toggle-container';
+        trayArmorContainer.className = "items-center gap-2 mb-4 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded flex animate-in fade-in";
+        trayArmorContainer.innerHTML = `
+            <input type="checkbox" id="tray-use-armor" class="w-4 h-4 cursor-pointer accent-gray-500">
+            <label for="tray-use-armor" class="text-[10px] uppercase font-black text-gray-300 cursor-pointer tracking-tight">Add Armor to Soak</label>
+        `;
+        const rollBtn = document.getElementById('roll-btn');
+        if(rollBtn && rollBtn.parentNode) {
+            const rollRow = rollBtn.parentNode;
+            tray.insertBefore(trayArmorContainer, rollRow);
+        } else {
+            tray.appendChild(trayArmorContainer);
+        }
+        
+        const trayToggle = trayArmorContainer.querySelector('input');
+        trayToggle.onchange = () => window.setupSoak();
+    }
+    trayArmorContainer.style.display = 'flex';
+
+    const healthToggle = document.getElementById('soak-armor-toggle');
+    const trayToggle = document.getElementById('tray-use-armor');
+    
+    if (healthToggle && document.activeElement === healthToggle) {
+        if(trayToggle) trayToggle.checked = healthToggle.checked;
+    }
+    else if (trayToggle && document.activeElement === trayToggle) {
+        if(healthToggle) healthToggle.checked = trayToggle.checked;
+    }
+    else if (healthToggle && trayToggle) {
+        trayToggle.checked = healthToggle.checked;
+    }
+
+    window.state.activePool = [];
+    
+    const stam = window.state.dots.attr['Stamina'] || 1;
+    const fort = window.state.dots.disc['Fortitude'] || 0;
+    
+    let armorRating = 0;
+    const isArmorActive = trayToggle ? trayToggle.checked : false;
+    
+    if (isArmorActive && window.state.inventory && Array.isArray(window.state.inventory)) {
+        const armors = window.state.inventory.filter(i => i.type === 'Armor' && i.status === 'carried');
+        armors.forEach(a => {
+            let r = 0;
+            if (a.stats && a.stats.rating) r = parseInt(a.stats.rating);
+            if (!isNaN(r)) armorRating += r;
+        });
+    }
+    
+    window.state.activePool.push({name: 'Stamina', val: stam});
+    if(fort > 0) window.state.activePool.push({name: 'Fortitude', val: fort});
+    if(armorRating > 0) window.state.activePool.push({name: 'Armor', val: armorRating});
+    
+    const armorText = armorRating > 0 ? ` + Armor (${armorRating})` : '';
+    setSafeText('pool-display', `Soak Roll: Stamina (${stam}) ${fort>0 ? `+ Fortitude (${fort})` : ''}${armorText}`);
+    
+    document.getElementById('dice-tray').classList.add('open');
+    showNotification("Soak Pool Ready.");
+}
+window.setupSoak = setupSoak;
+
+export function healOneLevel() {
+    let currentHealth = (window.state.status.health_states && Array.isArray(window.state.status.health_states)) 
+        ? [...window.state.status.health_states] 
+        : [0,0,0,0,0,0,0];
+        
+    let damageList = currentHealth.filter(x => x > 0);
+    
+    if(damageList.length === 0) {
+        showNotification("No damage to heal.");
+        return;
+    }
+    
+    const lastWound = damageList[damageList.length - 1];
+    
+    if(lastWound === 3) {
+        showNotification("Aggravated damage requires 5 BP + Rest.");
+        return;
+    }
+    
+    const curBlood = window.state.status.blood || 0;
+    if(curBlood < 1) {
+        showNotification("Not enough Blood (Need 1 BP).");
+        return;
+    }
+    
+    window.state.status.blood = curBlood - 1;
+    damageList.pop();
+    
+    let newStates = [0,0,0,0,0,0,0];
+    for(let i=0; i<7; i++) {
+        if(i < damageList.length) newStates[i] = damageList[i];
+        else newStates[i] = 0;
+    }
+    window.state.status.health_states = newStates;
+    
+    if(renderPrintSheet) renderPrintSheet();
+    // Use Global updatePools from ui-renderer
+    if(window.updatePools) window.updatePools();
+    showNotification("Healed 1 wound level (1 BP).");
+}
+window.healOneLevel = healOneLevel;
+
+
+// --- STATE MANAGEMENT & POOL UPDATES ---
+
+// FIX: Removed duplicate updatePools() definition. 
+// It is now defined in ui-renderer.js to handle the advanced XP math.
+
+export function refreshTraitRow(label, type, targetEl) {
+    let rowDiv = targetEl;
+    if (!rowDiv) {
+        const safeId = 'trait-row-' + type + '-' + label.replace(/[^a-zA-Z0-9]/g, '');
+        rowDiv = document.getElementById(safeId);
+    }
+    
+    if(!rowDiv) return;
+
+    // --- UPDATED MIN VALUE LOGIC ---
+    const clan = window.state.textFields['c-clan'] || document.getElementById('c-clan')?.value || "None";
+    let min = (type === 'attr') ? 1 : 0;
+    
+    // Override min for Nosferatu Appearance
+    if (clan === "Nosferatu" && label === "Appearance") min = 0;
+
+    let val = window.state.dots[type][label];
+    if (val === undefined) val = min;
+    
+    // Ensure value respects min (e.g. switching away from Nosferatu 0 -> 1)
+    if (val < min) {
+        val = min;
+        window.state.dots[type][label] = val; // Sync state
+    }
+
+    const max = 5;
+
+    let showSpecialty = false;
+    let warningMsg = "";
+
+    if (type !== 'virt') {
+        if (type === 'attr') {
+            if (val >= 4) showSpecialty = true;
+        } else if (type === 'abil') {
+            if (val >= 1) {
+                showSpecialty = true;
+                if (!BROAD_ABILITIES.includes(label) && val < 4) warningMsg = "Rule Note: Standard V20 requires 4 dots for specialties, but you may override.";
+                else if (BROAD_ABILITIES.includes(label)) warningMsg = "Rule Note: This ability is too broad to be used without a specialty.";
+            }
+        }
+    }
+
+    let specInputHTML = '';
+    if (showSpecialty) {
+        const specVal = window.state.specialties[label] || "";
+        if (window.state.isPlayMode && !specVal) specInputHTML = '<div class="flex-1"></div>'; 
+        else {
+            const listId = `list-${label.replace(/[^a-zA-Z0-9]/g, '')}`;
+            let optionsHTML = '';
+            if (SPECIALTY_EXAMPLES[label]) optionsHTML = SPECIALTY_EXAMPLES[label].map(s => `<option value="${s}">`).join('');
+            specInputHTML = `<div class="flex-1 mx-2 relative"><input type="text" list="${listId}" class="specialty-input w-full text-[10px] italic bg-transparent border-b border-gray-700 text-[#d4af37] text-center" placeholder="Specialty..." value="${specVal}"><datalist id="${listId}">${optionsHTML}</datalist></div>`;
+        }
+    } else { specInputHTML = '<div class="flex-1"></div>'; }
+
+    let styleOverride = "";
+    let pointerEvents = "auto";
+    let titleMsg = "";
+    
+    // --- NOSFERATU VISUAL STYLING ---
+    if (clan === "Nosferatu" && label === "Appearance") {
+        styleOverride = "text-decoration: line-through; color: #666; cursor: not-allowed; opacity: 0.5;";
+        pointerEvents = "none"; // Disable dots
+        titleMsg = "Nosferatu Weakness: Appearance 0";
+    }
+
+    rowDiv.innerHTML = `
+        <span class="trait-label font-bold uppercase text-[11px] whitespace-nowrap cursor-pointer hover:text-gold" style="${styleOverride}" title="${titleMsg}">
+            ${label}
+        </span>
+        ${specInputHTML}
+        <div class="dot-row flex-shrink-0" data-n="${label}" data-t="${type}" style="pointer-events: ${pointerEvents}; opacity: ${clan === "Nosferatu" && label === "Appearance" ? '0.3' : '1'}">
+            ${renderDots(val, max)}
+        </div>`;
+
+    rowDiv.querySelector('.trait-label').onclick = () => { if(window.state.isPlayMode && !(clan === "Nosferatu" && label === "Appearance")) window.handleTraitClick(label, type); };
+    rowDiv.querySelector('.dot-row').onclick = (e) => { if (e.target.dataset.v) setDots(label, type, parseInt(e.target.dataset.v), min, max); };
+    
+    if(showSpecialty && (!window.state.isPlayMode || (window.state.isPlayMode && window.state.specialties[label]))) {
+        const input = rowDiv.querySelector('input');
+        if(input) {
+            input.onblur = (e) => { 
+                window.state.specialties[label] = e.target.value; 
+                if(renderPrintSheet) renderPrintSheet(); 
+            };
+            if (warningMsg) { input.onfocus = () => window.showNotification(warningMsg); }
+            input.disabled = window.state.isPlayMode;
+        }
+    }
+}
+window.refreshTraitRow = refreshTraitRow;
+
+export function renderRow(contId, label, type, min, max = 5) {
+    const cont = typeof contId === 'string' ? document.getElementById(contId) : contId;
+    if (!cont) return;
+    const div = document.createElement('div'); 
+    div.id = 'trait-row-' + type + '-' + label.replace(/[^a-zA-Z0-9]/g, '');
+    div.className = 'flex items-center justify-between w-full py-1';
+    cont.appendChild(div);
+    refreshTraitRow(label, type, div); 
+}
+window.renderRow = renderRow;
+
+// --- UPDATED setDots with Experience Mode ---
+export function setDots(name, type, val, min, max = 5) {
+    if (window.state.isPlayMode) return;
+
+    // --- NOSFERATU BLOCK ---
+    const clan = window.state.textFields['c-clan'] || document.getElementById('c-clan')?.value || "None";
+    if (clan === "Nosferatu" && name === "Appearance") {
+        window.showNotification("Nosferatu Weakness: Appearance is 0.");
+        return;
+    }
+
+    // --- EXPERIENCE MODE LOGIC ---
+    if (window.state.xpMode) {
+        if (!window.state.xpLog) window.state.xpLog = [];
+
+        let currentVal = 0;
+        // Determine current value
+        if (type === 'status') {
+            if (name === 'Humanity') currentVal = window.state.status.humanity || 1;
+            else if (name === 'Willpower') currentVal = window.state.status.willpower || 1;
+        } else {
+            currentVal = window.state.dots[type][name] || min;
+        }
+
+        // HANDLE TOGGLE BEHAVIOR (Clicking the dot you already have means "remove/refund")
+        if (val === currentVal) {
+            val = val - 1;
+        }
+
+        // Prevent going below minimum (e.g. Attributes cannot go below 1, generally)
+        if (val < min) {
+            // Usually silent return, or could show "Cannot lower below minimum"
+            return;
+        }
+
+        // --- 1. REFUND LOGIC (Lowering value) ---
+        if (val < currentVal) {
+            // Logic: Find the most recent log entry where 'new' equals currentVal.
+            // This ensures we refund the specific step that reached this level.
+            let logType = type;
+            if (type === 'status') {
+                if (name === 'Humanity') logType = 'humanity';
+                if (name === 'Willpower') logType = 'willpower';
+            }
+
+            const logIdx = window.state.xpLog.findIndex(l => l.trait === name && l.new === currentVal && l.type === logType);
+            
+            if (logIdx > -1) {
+                // Found a matching XP expenditure. Refund it.
+                window.state.xpLog.splice(logIdx, 1);
+                
+                // Apply value decrease
+                if (type === 'status') {
+                    if (name === 'Humanity') window.state.status.humanity = val;
+                    if (name === 'Willpower') {
+                        window.state.status.willpower = val;
+                        window.state.status.tempWillpower = val; 
+                    }
+                } else {
+                    window.state.dots[type][name] = val;
+                }
+                
+                window.showNotification(`Refunded ${name} to ${val}`);
+                // Use Global updatePools from ui-renderer
+                if(window.updatePools) window.updatePools();
+                if(renderPrintSheet) renderPrintSheet();
+                return;
+            } else {
+                window.showNotification("Cannot refund: Trait not raised with XP (or history lost).");
+                return;
+            }
+        }
+
+        // --- 2. PURCHASE LOGIC (Raising value) ---
+        // Only allow buying 1 dot at a time
+        if (val > currentVal + 1) {
+            window.showNotification("Purchase 1 dot at a time.");
+            return;
+        }
+        
+        // Calculate Cost
+        const isClan = window.state.dots.disc && CLAN_DISCIPLINES[window.state.textFields['c-clan']]?.includes(name);
+        const isCaitiff = window.state.textFields['c-clan'] === "Caitiff";
+        
+        let xpType = type;
+        if (type === 'status') {
+             if (name === 'Humanity') xpType = 'humanity';
+             if (name === 'Willpower') xpType = 'willpower';
+        }
+        
+        const cost = getXpCost(currentVal, xpType, isClan, isCaitiff);
+        
+        // Calculate Budget
+        const totalXP = parseInt(document.getElementById('c-xp-total')?.value) || 0;
+        let spentXP = window.state.xpLog.reduce((acc, log) => acc + log.cost, 0);
+        const remaining = totalXP - spentXP;
+        
+        if (cost > remaining) {
+            window.showNotification(`Need ${cost} XP. Have ${remaining}.`);
+            return;
+        }
+
+        // DIRECT PURCHASE - NO CONFIRMATION
+        // APPLY CHANGE
+        if (type === 'status') {
+            if (name === 'Humanity') window.state.status.humanity = val;
+            if (name === 'Willpower') {
+                window.state.status.willpower = val;
+                window.state.status.tempWillpower = val; // Max increases temp
+            }
+        } else {
+            window.state.dots[type][name] = val;
+        }
+        
+        // LOG IT
+        window.state.xpLog.push({
+            trait: name,
+            old: currentVal,
+            new: val,
+            cost: cost,
+            type: xpType,
+            date: new Date().toISOString()
+        });
+
+        window.showNotification(`Purchased ${name} ${val} (${cost} XP)`);
+        // Refresh UI via window global
+        if(window.updatePools) window.updatePools();
+        if(renderPrintSheet) renderPrintSheet();
+        
+        return;
+    }
+    // --- END EXPERIENCE MODE LOGIC ---
+    
+    // --- STANDARD CREATION LOGIC ---
+    if (type === 'status') {
+        if (!window.state.freebieMode) return;
+        if (name === 'Humanity') {
+             const baseH = (window.state.dots.virt?.Conscience || 1) + (window.state.dots.virt?.["Self-Control"] || 1);
+             if (val < baseH) val = baseH;
+             window.state.status.humanity = val;
+        }
+        else if (name === 'Willpower') {
+            const baseW = window.state.dots.virt?.Courage || 1;
+            if (val < baseW) val = baseW;
+            window.state.status.willpower = val;
+            window.state.status.tempWillpower = val;
+        }
+        if(window.updatePools) window.updatePools();
+        if(renderPrintSheet) renderPrintSheet();
+        return;
+    }
+
+    const currentVal = window.state.dots[type][name] || min;
+    let newVal = val;
+    if (val === currentVal) newVal = val - 1;
+    if (newVal < min) newVal = min;
+
+    // --- CAITIFF RESTRICTIONS (Creation Mode) ---
+    // Caitiff may not purchase Status background during creation.
+    if (!window.state.freebieMode && clan === "Caitiff") {
+        if (type === 'back' && name === 'Status' && newVal > 0) {
+            window.showNotification("Restriction: Caitiff cannot purchase Status during creation.");
+            return;
+        }
+    }
+
+    if (window.state.freebieMode) {
+        // Freebie mode allows unlimited editing, the ledger just tracks the cost.
+    } else {
+        // ... [Standard Priority Checks for Phases 2,3,4] ...
+        if (type === 'attr') {
+            let group = null; Object.keys(ATTRIBUTES).forEach(k => { if(ATTRIBUTES[k].includes(name)) group = k; });
+            if (group) {
+                 const limit = window.state.prios.attr[group];
+                 if (limit === undefined) { window.showNotification(`Select priority for ${group}!`); return; }
+                 let currentSpent = 0;
+                 ATTRIBUTES[group].forEach(a => { if (a !== name) { const v = window.state.dots.attr[a] || 1; currentSpent += (v - 1); } });
+                 if (currentSpent + (newVal - 1) > limit) { window.showNotification("Limit Exceeded!"); return; }
+            }
+        } else if (type === 'abil') {
+            if (newVal > 3) { window.showNotification("Max 3 dots in Abilities during creation!"); return; }
+            let group = null; Object.keys(ABILITIES).forEach(k => { if(ABILITIES[k].includes(name)) group = k; });
+            if (!group && window.state.customAbilityCategories && window.state.customAbilityCategories[name]) group = window.state.customAbilityCategories[name];
+            if (group) {
+                const limit = window.state.prios.abil[group];
+                if (limit === undefined) { window.showNotification(`Select priority for ${group}!`); return; }
+                let currentSpent = 0; ABILITIES[group].forEach(a => { if (a !== name) currentSpent += (window.state.dots.abil[a] || 0); });
+                if (window.state.customAbilityCategories) { Object.keys(window.state.dots.abil).forEach(k => { if (k !== name && window.state.customAbilityCategories[k] === group) currentSpent += (window.state.dots.abil[k] || 0); }); }
+                if (currentSpent + newVal > limit) { window.showNotification("Limit Exceeded!"); return; }
+            }
+        } else if (type === 'disc') {
+            let currentSpent = 0; Object.keys(window.state.dots.disc).forEach(d => { if (d !== name) currentSpent += (window.state.dots.disc[d] || 0); });
+            if (currentSpent + newVal > 3) { window.showNotification("Max 3 Creation Dots!"); return; }
+        } else if (type === 'back') {
+            let currentSpent = 0; Object.keys(window.state.dots.back).forEach(b => { if (b !== name) currentSpent += (window.state.dots.back[b] || 0); });
+            if (currentSpent + newVal > 5) { window.showNotification("Max 5 Creation Dots!"); return; }
+        } else if (type === 'virt') {
+            let currentSpent = 0; VIRTUES.forEach(v => { if (v !== name) currentSpent += (window.state.dots.virt[v] || 1); });
+            if ((currentSpent + newVal) > 10) { window.showNotification("Max 7 Creation Dots!"); return; }
+        }
+    }
+
+    window.state.dots[type][name] = newVal;
+    
+    if (type === 'back' && name === 'Generation') {
+        const newGen = 13 - newVal;
+        if (!window.state.textFields) window.state.textFields = {};
+        window.state.textFields['c-gen'] = newGen.toString();
+        const genInput = document.getElementById('c-gen');
+        if (genInput) genInput.value = newGen;
+    }
+
+    // Auto-update Status from Virtues in Creation Mode
+    if (type === 'virt' && !window.state.isPlayMode && !window.state.freebieMode && !window.state.xpMode) {
+         const delta = newVal - currentVal;
+         if (delta !== 0) {
+             if (name === 'Conscience' || name === 'Self-Control') {
+                 if (window.state.status.humanity === undefined) window.state.status.humanity = 2; // Initial Min
+                 window.state.status.humanity += delta;
+                 if (window.state.status.humanity < 0) window.state.status.humanity = 0;
+             }
+             if (name === 'Courage') {
+                 if (window.state.status.willpower === undefined) window.state.status.willpower = 1;
+                 window.state.status.willpower += delta;
+                 window.state.status.tempWillpower = window.state.status.willpower; // Sync temp in creation
+                 if (window.state.status.willpower < 0) window.state.status.willpower = 0;
+             }
+         }
+    }
+
+    if (type === 'attr' || type === 'abil') {
+        refreshTraitRow(name, type);
+    } else {
+        document.querySelectorAll(`.dot-row[data-n="${name}"][data-t="${type}"]`).forEach(el => el.innerHTML = renderDots(newVal, max));
+    }
+    // Update Pools via Global
+    if(window.updatePools) window.updatePools();
+    if(type === 'back') renderSocialProfile();
+    if(renderPrintSheet) renderPrintSheet();
+}
+window.setDots = setDots;
