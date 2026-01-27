@@ -17,7 +17,7 @@ import {
 import { renderPrintSheet } from "./ui-print.js";
 
 
-// --- CLAN MECHANICS UI HELPER ---
+// --- CLAN & MECHANICS UI HELPER ---
 function updateClanMechanicsUI() {
     const clan = window.state.textFields['c-clan'] || document.getElementById('c-clan')?.value || "None";
     
@@ -58,15 +58,7 @@ function updateClanMechanicsUI() {
                     <input type="checkbox" id="setite-light-toggle" class="accent-yellow-500 w-4 h-4 cursor-pointer pointer-events-auto ring-1 ring-yellow-500/50">
                     <label for="setite-light-toggle" class="text-[10px] text-yellow-300 font-bold uppercase cursor-pointer select-none tracking-tight hover:text-white">Bright Light (-1 Die)</label>
                 `;
-                
-                const rollBtn = document.getElementById('roll-btn');
-                if (rollBtn) {
-                     const row = rollBtn.closest('.flex'); 
-                     if(row) tray.insertBefore(lightWrapper, row);
-                     else tray.appendChild(lightWrapper);
-                } else {
-                    tray.appendChild(lightWrapper);
-                }
+                prependToTray(tray, lightWrapper);
             }
             lightWrapper.style.display = 'flex';
         } else {
@@ -86,40 +78,111 @@ function updateClanMechanicsUI() {
                     <label for="tzimisce-soil-days" class="text-[10px] text-[#e9d5ff] font-bold uppercase cursor-pointer select-none tracking-tight">Days Away from Native Soil</label>
                     <input type="number" id="tzimisce-soil-days" min="0" value="0" class="w-12 text-center bg-black/50 border border-[#a855f7]/50 text-white text-[10px] font-bold rounded p-1 focus:outline-none focus:border-[#a855f7]">
                 `;
-                
-                const rollBtn = document.getElementById('roll-btn');
-                if (rollBtn) {
-                     const row = rollBtn.closest('.flex'); 
-                     if(row) tray.insertBefore(tzimisceWrapper, row);
-                     else tray.appendChild(tzimisceWrapper);
-                } else {
-                    tray.appendChild(tzimisceWrapper);
-                }
+                prependToTray(tray, tzimisceWrapper);
             }
             tzimisceWrapper.style.display = 'flex';
         } else {
             if (tzimisceWrapper) tzimisceWrapper.style.display = 'none';
         }
+
+        // --- C. REVISED DISCIPLINE: POTENCE (Toggle) ---
+        const potenceDots = window.state.dots.disc['Potence'] || 0;
+        let potWrapper = document.getElementById('potence-wrapper');
+        
+        if (potenceDots > 0) {
+            if (!potWrapper) {
+                potWrapper = document.createElement('div');
+                potWrapper.id = 'potence-wrapper';
+                potWrapper.className = "flex items-center justify-between gap-2 mb-2 px-3 py-2 bg-[#3a0a0a] border border-red-800/50 rounded flex animate-in fade-in relative z-20 shadow-sm";
+                potWrapper.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="potence-toggle" class="accent-red-600 w-4 h-4 cursor-pointer">
+                        <label for="potence-toggle" class="text-[10px] text-red-300 font-bold uppercase cursor-pointer select-none">Potence (${potenceDots})</label>
+                    </div>
+                    <span class="text-[9px] text-gray-400 italic">1 BP: Auto-Successes</span>
+                `;
+                prependToTray(tray, potWrapper);
+
+                const toggle = potWrapper.querySelector('#potence-toggle');
+                toggle.onchange = (e) => {
+                    if (e.target.checked) {
+                        if ((window.state.status.blood || 0) > 0) {
+                            window.state.status.blood--;
+                            window.showNotification("Spent 1 BP: Potence Active.");
+                            if (window.updatePools) window.updatePools();
+                        } else {
+                            e.target.checked = false;
+                            window.showNotification("Not enough blood for Potence!");
+                        }
+                    } else {
+                         window.showNotification("Potence Deactivated.");
+                    }
+                };
+            }
+            potWrapper.style.display = 'flex';
+            const label = potWrapper.querySelector('label');
+            if(label) label.innerText = `Potence (${potenceDots})`;
+        } else {
+            if (potWrapper) potWrapper.style.display = 'none';
+        }
+
+        // --- D. REVISED DISCIPLINE: CELERITY (Button) ---
+        const celerityDots = window.state.dots.disc['Celerity'] || 0;
+        let celWrapper = document.getElementById('celerity-wrapper');
+        
+        if (celerityDots > 0) {
+            if (!celWrapper) {
+                celWrapper = document.createElement('div');
+                celWrapper.id = 'celerity-wrapper';
+                celWrapper.className = "flex items-center justify-between gap-2 mb-2 px-3 py-2 bg-[#0a1a2a] border border-blue-800/50 rounded flex animate-in fade-in relative z-20 shadow-sm";
+                celWrapper.innerHTML = `
+                    <label class="text-[10px] text-blue-300 font-bold uppercase select-none">Celerity (${celerityDots})</label>
+                    <button id="btn-celerity-spend" class="bg-blue-900/50 hover:bg-blue-700 text-blue-200 text-[9px] px-2 py-1 rounded border border-blue-500/30 uppercase font-bold transition-colors">
+                        Spend 1 BP (Action)
+                    </button>
+                `;
+                prependToTray(tray, celWrapper);
+                
+                celWrapper.querySelector('#btn-celerity-spend').onclick = () => {
+                    if ((window.state.status.blood || 0) > 0) {
+                        window.state.status.blood--;
+                        window.showNotification("Spent 1 BP: Extra Action stored.");
+                        if (window.updatePools) window.updatePools();
+                        
+                        // Visual Log
+                        const resTray = document.getElementById('roll-results');
+                        if (resTray) {
+                            const msg = document.createElement('div');
+                            msg.className = "text-[10px] text-blue-400 italic text-center border-b border-gray-800 py-1 animate-in fade-in";
+                            msg.innerText = ">> Celerity Activated: 1 Extra Action Next Turn <<";
+                            resTray.insertBefore(msg, resTray.firstChild);
+                        }
+                    } else {
+                        window.showNotification("Not enough blood for Celerity!");
+                    }
+                };
+            }
+            celWrapper.style.display = 'flex';
+            const label = celWrapper.querySelector('label');
+            if(label) label.innerText = `Celerity (${celerityDots})`;
+        } else {
+            if (celWrapper) celWrapper.style.display = 'none';
+        }
     }
 
     // --- 3. CLAN ACTION PANELS (PLAY MODE) ---
-    
-    // TARGET CONTAINER LOGIC:
     let weaknessContainer = document.getElementById('weakness-play-container');
     const fallbackContainer = document.getElementById('health-chart-play')?.parentNode;
-
-    // TARGET FOR GANGREL (Column 3 - Beast Container)
     let beastContainer = document.getElementById('beast-play-container');
     if (!beastContainer && fallbackContainer) beastContainer = fallbackContainer;
 
-    // A. GANGREL: BEAST TRAITS PANEL (Keep in Col 3)
+    // A. GANGREL
     let gangrelPanel = document.getElementById('gangrel-beast-panel');
     if (clan === "Gangrel") {
         if (!gangrelPanel) {
             gangrelPanel = document.createElement('div');
             gangrelPanel.id = 'gangrel-beast-panel';
             gangrelPanel.className = "mt-4 p-3 bg-[#1a1a1a] border border-[#8b0000] rounded shadow-lg animate-in fade-in";
-            
             if(beastContainer) beastContainer.appendChild(gangrelPanel);
         }
         gangrelPanel.style.display = 'block';
@@ -128,7 +191,7 @@ function updateClanMechanicsUI() {
         if (gangrelPanel) gangrelPanel.style.display = 'none';
     }
 
-    // B. TOREADOR: ENRAPTURE PANEL (Col 1)
+    // B. TOREADOR
     let toreadorPanel = document.getElementById('toreador-action-panel');
     if (clan === "Toreador") {
         if (!toreadorPanel) {
@@ -142,7 +205,6 @@ function updateClanMechanicsUI() {
                     Resist Enrapture
                 </button>
             `;
-            
             if(weaknessContainer) weaknessContainer.appendChild(toreadorPanel);
             else if(fallbackContainer) fallbackContainer.appendChild(toreadorPanel);
         }
@@ -151,7 +213,7 @@ function updateClanMechanicsUI() {
         if (toreadorPanel) toreadorPanel.style.display = 'none';
     }
 
-    // C. RAVNOS: VICE PANEL (Col 1)
+    // C. RAVNOS
     let ravnosPanel = document.getElementById('ravnos-action-panel');
     if (clan === "Ravnos") {
         if (!ravnosPanel) {
@@ -168,7 +230,6 @@ function updateClanMechanicsUI() {
                     </button>
                 </div>
             `;
-            
             if(weaknessContainer) weaknessContainer.appendChild(ravnosPanel);
             else if(fallbackContainer) fallbackContainer.appendChild(ravnosPanel);
         }
@@ -177,10 +238,7 @@ function updateClanMechanicsUI() {
         if (ravnosPanel) ravnosPanel.style.display = 'none';
     }
 
-    // --- 4. NOSFERATU: APPEARANCE ENFORCEMENT & VISUALS ---
-    if(window.refreshTraitRow) window.refreshTraitRow("Appearance", "attr");
-
-    // Force data consistency
+    // --- 4. NOSFERATU: APPEARANCE ENFORCEMENT ---
     if (clan === "Nosferatu") {
         if (window.state.dots.attr["Appearance"] > 0) {
             window.state.dots.attr["Appearance"] = 0;
@@ -190,10 +248,21 @@ function updateClanMechanicsUI() {
 }
 window.updateClanMechanicsUI = updateClanMechanicsUI;
 
+// Helper to add elements to dice tray
+function prependToTray(tray, el) {
+    const rollBtn = document.getElementById('roll-btn');
+    if (rollBtn && rollBtn.parentNode) {
+         const row = rollBtn.closest('.flex'); 
+         if(row) tray.insertBefore(el, row);
+         else tray.appendChild(el);
+    } else {
+        tray.appendChild(el);
+    }
+}
+
 // --- GANGREL HELPER FUNCTIONS ---
 function renderGangrelPanel(container) {
     if (!window.state.beastTraits) window.state.beastTraits = [];
-    
     const traits = window.state.beastTraits;
     
     let listHTML = `<div class="text-[#d4af37] font-bold text-xs uppercase mb-2 border-b border-[#333] pb-1 flex justify-between items-center">
@@ -246,10 +315,7 @@ window.addBeastTrait = function() {
     const effect = document.getElementById('gt-effect')?.value;
     const type = document.getElementById('gt-type')?.value;
     
-    if(!name || !effect) {
-        showNotification("Please enter Name and Effect.");
-        return;
-    }
+    if(!name || !effect) { showNotification("Please enter Name and Effect."); return; }
     
     window.state.beastTraits.push({ name, effect, type });
     showNotification("Beast Trait Added.");
@@ -268,15 +334,12 @@ window.removeBeastTrait = function(idx) {
     }
 };
 
-// --- DERANGEMENT MANAGEMENT (Shared + Malkavian Logic) ---
+// --- DERANGEMENT MANAGEMENT ---
 
 window.addDerangement = function() {
     const input = document.getElementById('derangement-input') || document.getElementById('malk-new-d');
     const val = input?.value;
-    if (!val) {
-        showNotification("Enter a Derangement name.");
-        return;
-    }
+    if (!val) { showNotification("Enter a Derangement name."); return; }
     
     if (!window.state.derangements) window.state.derangements = [];
     window.state.derangements.push(val);
@@ -314,7 +377,6 @@ window.removeDerangement = function(idx) {
 window.suppressDerangement = function() {
     if ((window.state.status.tempWillpower || 0) > 0) {
         window.state.status.tempWillpower--;
-        // Use Global updatePools from ui-renderer
         if(window.updatePools) window.updatePools(); 
         if(renderPrintSheet) renderPrintSheet();
         showNotification("Spent 1 WP: Derangements suppressed for 1 Scene.");
@@ -359,11 +421,20 @@ export function clearPool() {
     const armorCont = document.getElementById('tray-armor-toggle-container');
     if(armorCont) armorCont.style.display = 'none';
 
+    // Reset Clan/Disc Toggles
     const lightToggle = document.getElementById('setite-light-toggle');
     if (lightToggle) lightToggle.checked = false;
+    
+    // Reset Potence Toggle (optional - keeping it active might be preferred, but usually reset on clear)
+    const potToggle = document.getElementById('potence-toggle');
+    if (potToggle) {
+        // Since it costs BP to activate, we just uncheck visually, logic handles state. 
+        // Or we might leave it if it represents a scene-long buff. 
+        // For safety/clarity, let's reset it to force conscious re-spend.
+        potToggle.checked = false; 
+    }
 
     updateClanMechanicsUI();
-
     document.getElementById('dice-tray').classList.remove('open');
 }
 window.clearPool = clearPool;
@@ -371,16 +442,13 @@ window.clearPool = clearPool;
 
 export function handleTraitClick(name, type) {
     const armorCont = document.getElementById('tray-armor-toggle-container');
-    if(armorCont && armorCont.style.display !== 'none') {
-        window.clearPool();
-    }
+    if(armorCont && armorCont.style.display !== 'none') window.clearPool();
 
     const val = window.state.dots[type][name] || 0;
     const existingIdx = window.state.activePool.findIndex(p => p.name === name);
     
-    if (existingIdx > -1) {
-        window.state.activePool.splice(existingIdx, 1);
-    } else { 
+    if (existingIdx > -1) window.state.activePool.splice(existingIdx, 1);
+    else { 
         if (window.state.activePool.length >= 2) window.state.activePool.shift(); 
         window.state.activePool.push({name, val}); 
     }
@@ -407,7 +475,8 @@ export function handleTraitClick(name, type) {
             if (specs.length > 0) {
                  const isApplied = document.getElementById('use-specialty')?.checked;
                  if(isApplied) {
-                     hintEl.innerHTML = `<span class="text-[#d4af37] font-bold">Specialty Active! (10s = 2 Successes)</span>`;
+                     // REVISED: 10s Explode
+                     hintEl.innerHTML = `<span class="text-[#d4af37] font-bold">Specialty Active! (10s Explode)</span>`;
                  } else {
                      hintEl.innerHTML = `<span>Possible Specialty: ${specs.join(', ')}</span><button id="apply-spec-btn" class="ml-2 bg-[#d4af37] text-black px-1 rounded hover:bg-white pointer-events-auto text-[9px] font-bold uppercase">APPLY</button>`;
                      const btn = document.getElementById('apply-spec-btn');
@@ -417,7 +486,7 @@ export function handleTraitClick(name, type) {
                          if(cb) { 
                              cb.checked = true; 
                              window.showNotification(`Applied: ${specs.join(', ')}`); 
-                             hintEl.innerHTML = `<span class="text-[#d4af37] font-bold">Specialty Active! (10s = 2 Successes)</span>`; 
+                             hintEl.innerHTML = `<span class="text-[#d4af37] font-bold">Specialty Active! (10s Explode)</span>`; 
                          } 
                      };
                  }
@@ -433,20 +502,15 @@ export function handleTraitClick(name, type) {
 }
 window.handleTraitClick = handleTraitClick;
 
-// ADDED: Direct toggle function for NPCs or manual overrides (accepts rating directly)
 export function toggleStat(name, rating, type) {
     const armorCont = document.getElementById('tray-armor-toggle-container');
-    if(armorCont && armorCont.style.display !== 'none') {
-        window.clearPool();
-    }
+    if(armorCont && armorCont.style.display !== 'none') window.clearPool();
 
     const val = parseInt(rating) || 0;
-    
     const existingIdx = window.state.activePool.findIndex(p => p.name === name);
     
-    if (existingIdx > -1) {
-        window.state.activePool.splice(existingIdx, 1);
-    } else { 
+    if (existingIdx > -1) window.state.activePool.splice(existingIdx, 1);
+    else { 
         if (window.state.activePool.length >= 2) window.state.activePool.shift(); 
         window.state.activePool.push({name, val}); 
     }
@@ -477,30 +541,23 @@ export function toggleStat(name, rating, type) {
 window.toggleStat = toggleStat;
 
 
+// --- MAIN ROLLING LOGIC (REVISED EDITION) ---
 export function rollPool() {
-    // --- SPECIAL ROLL INTERCEPTION: INITIATIVE ---
-    // Check if the current pool contains an Initiative entry
+    // 1. INITIATIVE INTERCEPTION
     const initiativeItem = window.state.activePool.find(p => p.name.includes("Initiative"));
-    
     if (initiativeItem) {
-        // ROBUST PARSING: Prefer direct value, fallback to Regex parsing for legacy support
         let mod = initiativeItem.val;
-        
-        // If val is 0, check if we need to parse it from the name (legacy behavior)
         if (mod === 0 && initiativeItem.name.includes("(")) {
             const match = initiativeItem.name.match(/[+(]\s*\+?\s*(\d+)/);
             if (match) mod = parseInt(match[1]);
         }
-        
-        // Roll 1d10
         const die = Math.floor(Math.random() * 10) + 1;
         const total = die + mod;
         
-        // Render Result immediately
+        // Render Initiative
         const tray = document.getElementById('roll-results');
         const row = document.createElement('div');
         row.className = 'bg-black/60 p-2 border border-[#333] text-[10px] mb-2 animate-in fade-in slide-in-from-right-4 duration-300';
-        
         row.innerHTML = `
             <div class="flex justify-between border-b border-[#444] pb-1 mb-1">
                 <span class="text-[#d4af37] font-bold uppercase">Initiative Roll</span>
@@ -513,14 +570,13 @@ export function rollPool() {
                 <span class="text-gray-500 font-black">=</span>
                 <span class="text-[#4ade80] font-black text-lg border border-[#d4af37] px-3 py-1 rounded bg-[#d4af37]/10">${total}</span>
             </div>
-            <div class="text-[9px] text-gray-500 italic text-center mt-1">Declare actions in reverse order (Lowest to Highest). Resolve Highest to Lowest.</div>
+            <div class="text-[9px] text-gray-500 italic text-center mt-1">Declare: Reverse Order. Resolve: Highest First.</div>
         `;
-        
         tray.insertBefore(row, tray.firstChild);
-        return; // EXIT FUNCTION: Skip standard success counting
+        return; 
     }
 
-    // --- STANDARD DICE POOL LOGIC ---
+    // 2. POOL CONSTRUCTION
     const spendWP = document.getElementById('spend-willpower')?.checked;
     let autoSuccesses = 0;
     
@@ -528,7 +584,6 @@ export function rollPool() {
         if ((window.state.status.tempWillpower || 0) > 0) {
              window.state.status.tempWillpower--;
              autoSuccesses = 1;
-             // Use Global updatePools from ui-renderer
              if(window.updatePools) window.updatePools(); 
              window.showNotification("Willpower spent: +1 Auto Success");
              document.getElementById('spend-willpower').checked = false; 
@@ -539,12 +594,19 @@ export function rollPool() {
         }
     }
 
+    // POTENCE AUTO-SUCCESSES (Revised)
+    const potenceActive = document.getElementById('potence-toggle')?.checked;
+    const isStrengthRoll = window.state.activePool.some(p => p.name === 'Strength');
+    if (potenceActive && isStrengthRoll) {
+        const potDots = window.state.dots.disc['Potence'] || 0;
+        autoSuccesses += potDots;
+    }
+
     const custom = parseInt(document.getElementById('custom-dice-input')?.value) || 0;
     let poolSize = window.state.activePool.reduce((a,b) => a + b.val, 0) + custom;
     
-    // --- CLAN WEAKNESSES: POOL MODIFIERS ---
+    // CLAN MODIFIERS
     const clan = window.state.textFields['c-clan'] || "None";
-    
     const lightToggle = document.getElementById('setite-light-toggle');
     if (clan === "Followers of Set" && lightToggle && lightToggle.checked) {
         poolSize -= 1;
@@ -566,27 +628,49 @@ export function rollPool() {
         return; 
     }
     
+    // 3. ROLLING & REVISED SPECIALTY LOGIC
     const diff = parseInt(document.getElementById('roll-diff').value) || 6;
     const isSpec = document.getElementById('use-specialty').checked;
     
-    let results = [], ones = 0, rawSuccesses = 0;
+    let results = [];
+    let rawSuccesses = 0;
+    let ones = 0;
+
     for(let i=0; i<poolSize; i++) {
         const die = Math.floor(Math.random() * 10) + 1;
-        results.push(die);
+        let type = 'normal';
+
+        if (die >= diff) rawSuccesses++;
         if (die === 1) ones++;
-        if (die >= diff) { 
-            if (isSpec && die === 10) rawSuccesses += 2; 
-            else rawSuccesses += 1; 
+
+        if (type !== 'explode') results.push({ val: die, type: 'normal' });
+
+        // REVISED SPECIALTY: 10s EXPLODE
+        // "A roll of 10... counts as a success... and allows the player to reroll that die."
+        if (isSpec && die === 10) {
+            let exploding = true;
+            while(exploding) {
+                const extra = Math.floor(Math.random() * 10) + 1;
+                results.push({ val: extra, type: 'specialty' });
+                
+                if (extra >= diff) rawSuccesses++;
+                if (extra === 1) ones++; // 1s on re-roll cancel successes
+                
+                if (extra !== 10) exploding = false;
+            }
         }
     }
     
+    // 4. CALCULATION
     let net = Math.max(0, rawSuccesses - ones);
-    
     net += autoSuccesses;
 
+    // 5. OUTCOME
     let outcome = "", outcomeClass = "";
-    
-    if (rawSuccesses === 0 && autoSuccesses === 0 && ones > 0) { 
+    const totalRolledSuccesses = rawSuccesses + autoSuccesses; // Treat auto-successes as successes preventing botch
+
+    // Revised Botch: No successes at all AND ones present
+    if (totalRolledSuccesses === 0 && ones > 0) { 
         outcome = "BOTCH"; outcomeClass = "dice-botch"; 
     } 
     else if (net <= 0) { 
@@ -596,22 +680,30 @@ export function rollPool() {
         outcome = `${net} SUCCESS${net > 1 ? 'ES' : ''}`; outcomeClass = "dice-success"; 
     }
     
+    // 6. RENDER
     const tray = document.getElementById('roll-results');
     const row = document.createElement('div');
     row.className = 'bg-black/60 p-2 border border-[#333] text-[10px] mb-2 animate-in fade-in slide-in-from-right-4 duration-300';
     
     const diceRender = results.map(d => {
         let c = 'text-gray-500';
-        if (d === 1) c = 'text-[#ff0000] font-bold';
-        else if (d >= diff) { 
+        let decoration = '';
+        if (d.val === 1) c = 'text-[#ff0000] font-bold';
+        else if (d.val >= diff) { 
             c = 'text-[#d4af37] font-bold'; 
-            if (d === 10 && isSpec) c = 'text-[#4ade80] font-black'; 
+            if (d.val === 10 && isSpec) c = 'text-[#4ade80] font-black'; 
         }
-        return `<span class="${c} text-3xl mx-1">${d}</span>`;
+        if (d.type === 'specialty') decoration = 'underline decoration-dotted';
+        return `<span class="${c} ${decoration} text-3xl mx-1" title="${d.type}">${d.val}</span>`;
     }).join(' ');
 
     let extras = "";
-    if (autoSuccesses > 0) extras += `<div class="text-[9px] text-blue-300 font-bold mt-1 text-center border-t border-[#333] pt-1 uppercase">Willpower Applied (+1 Success)</div>`;
+    if (autoSuccesses > 0) {
+        let sources = [];
+        if (spendWP) sources.push("Willpower");
+        if (potenceActive && isStrengthRoll) sources.push(`Potence (${window.state.dots.disc['Potence']})`);
+        extras += `<div class="text-[9px] text-blue-300 font-bold mt-1 text-center border-t border-[#333] pt-1 uppercase">Auto Successes: ${sources.join(', ')}</div>`;
+    }
     
     if (clan === "Followers of Set" && lightToggle && lightToggle.checked) {
         extras += `<div class="text-[9px] text-yellow-500 font-bold mt-1 text-center border-t border-[#333] pt-1 uppercase">Bright Light Penalty (-1 Die)</div>`;
@@ -621,7 +713,7 @@ export function rollPool() {
         extras += `<div class="text-[9px] text-[#a855f7] font-bold mt-1 text-center border-t border-[#333] pt-1 uppercase">Away From Soil (${days} days): Pool Halved</div>`;
     }
 
-    row.innerHTML = `<div class="flex justify-between border-b border-[#444] pb-1 mb-1"><span class="text-gray-400">Diff ${diff}${isSpec ? '*' : ''}</span><span class="${outcomeClass} font-black text-sm">${outcome}</span></div><div class="tracking-widest flex flex-wrap justify-center py-2">${diceRender}</div>${extras}`;
+    row.innerHTML = `<div class="flex justify-between border-b border-[#444] pb-1 mb-1"><span class="text-gray-400">Diff ${diff}${isSpec ? ' (Explode)' : ''}</span><span class="${outcomeClass} font-black text-sm">${outcome}</span></div><div class="tracking-widest flex flex-wrap justify-center py-2">${diceRender}</div>${extras}`;
     tray.insertBefore(row, tray.firstChild);
 }
 window.rollPool = rollPool;
@@ -651,10 +743,8 @@ export function rollCombat(name, diff, attr, ability) {
 }
 window.rollCombat = rollCombat;
 
-// --- ADDED INITIATIVE FUNCTION ---
 export function rollInitiative(rating) {
     window.clearPool();
-    // Add Special "Initiative" item to pool with rating as value
     window.state.activePool.push({name: "Initiative", val: rating});
     
     const display = document.getElementById('pool-display');
@@ -668,30 +758,22 @@ export function rollInitiative(rating) {
 }
 window.rollInitiative = rollInitiative;
 
-// --- NEW: ROLL DISCIPLINE FUNCTION ---
 export function rollDiscipline(powerName, poolKeys, defaultDiff) {
     window.clearPool();
-    
     let displayParts = [];
     
     poolKeys.forEach(key => {
-        // Search Attributes
         let val = window.state.dots.attr[key];
-        
-        // Search Abilities
         if (val === undefined) val = window.state.dots.abil[key];
-        
-        // Search Virtues
         if (val === undefined) val = window.state.dots.virt[key];
         
-        // Fallback or specific lookups (Self-Control vs Instincts, etc.)
         if (key === 'Self-Control/Instinct') {
             const hasInstinct = window.state.dots.virt['Instincts'] > 0;
             key = hasInstinct ? 'Instincts' : 'Self-Control';
             val = window.state.dots.virt[key] || 1;
         }
         
-        if (val === undefined) val = 0; // Default if not found
+        if (val === undefined) val = 0; 
         
         window.state.activePool.push({name: key, val: val});
         displayParts.push(`${key} (${val})`);
@@ -723,7 +805,6 @@ window.toggleDiceTray = toggleDiceTray;
 
 
 // --- FRENZY & RÖTSCHRECK ---
-
 export function rollFrenzy() {
     window.clearPool();
     const traitName = window.state.dots.virt["Instincts"] ? "Instincts" : "Self-Control";
@@ -809,12 +890,10 @@ export function rollRotschreck() {
 }
 window.rollRotschreck = rollRotschreck;
 
-// --- TOREADOR WEAKNESS SETUP ---
 export function setupToreadorWeakness() {
     window.clearPool();
     const traitName = window.state.dots.virt["Instincts"] ? "Instincts" : "Self-Control";
     const traitVal = window.state.dots.virt[traitName] || 1;
-    
     window.state.activePool.push({name: traitName, val: traitVal});
     
     const difficulty = 6;
@@ -829,17 +908,14 @@ export function setupToreadorWeakness() {
 
     const tray = document.getElementById('dice-tray');
     if (tray) tray.classList.add('open');
-
     showNotification(`Enrapture Pool Set (Diff 6). Click Roll.`);
 }
 window.setupToreadorWeakness = setupToreadorWeakness;
 
-// --- RAVNOS WEAKNESS SETUP ---
 export function setupRavnosWeakness() {
     window.clearPool();
     const traitName = window.state.dots.virt["Instincts"] ? "Instincts" : "Self-Control";
     const traitVal = window.state.dots.virt[traitName] || 1;
-    
     window.state.activePool.push({name: traitName, val: traitVal});
     
     const difficulty = 6;
@@ -857,7 +933,6 @@ export function setupRavnosWeakness() {
 
     const tray = document.getElementById('dice-tray');
     if (tray) tray.classList.add('open');
-
     showNotification(`Resist ${vice} Pool Set (Diff 6). Click Roll.`);
 }
 window.setupRavnosWeakness = setupRavnosWeakness;
@@ -905,7 +980,6 @@ export function applyDamage(typeStr) {
     window.state.status.health_states = newStates;
     
     if(renderPrintSheet) renderPrintSheet();
-    // Use Global updatePools from ui-renderer
     if(window.updatePools) window.updatePools();
 }
 window.applyDamage = applyDamage;
@@ -1015,17 +1089,65 @@ export function healOneLevel() {
     window.state.status.health_states = newStates;
     
     if(renderPrintSheet) renderPrintSheet();
-    // Use Global updatePools from ui-renderer
     if(window.updatePools) window.updatePools();
     showNotification("Healed 1 wound level (1 BP).");
 }
 window.healOneLevel = healOneLevel;
 
+// --- REVISED: BATTLE HEAL (5BP + 1WP) ---
+window.healBattle = function() {
+    // 1. Check Willpower
+    const curWP = window.state.status.tempWillpower || 0;
+    if (curWP < 1) {
+        showNotification("Need 1 WP for Battle Heal!");
+        return;
+    }
+
+    // 2. Check Health
+    let currentHealth = (window.state.status.health_states && Array.isArray(window.state.status.health_states)) 
+        ? [...window.state.status.health_states] 
+        : [0,0,0,0,0,0,0];
+    
+    let damageList = currentHealth.filter(x => x > 0);
+    
+    if(damageList.length === 0) {
+        showNotification("No damage to heal.");
+        return;
+    }
+    
+    const lastWound = damageList[damageList.length - 1];
+    if(lastWound === 3) {
+        showNotification("Aggravated damage requires 5 BP + Full Day Rest.");
+        return;
+    }
+
+    // 3. Check Blood
+    const curBlood = window.state.status.blood || 0;
+    if(curBlood < 5) {
+        showNotification("Not enough Blood for Battle Heal (Need 5 BP).");
+        return;
+    }
+
+    // 4. EXECUTE
+    window.state.status.blood = curBlood - 5;
+    window.state.status.tempWillpower = curWP - 1;
+    
+    damageList.pop(); // Heal 1 level
+    
+    let newStates = [0,0,0,0,0,0,0];
+    for(let i=0; i<7; i++) {
+        if(i < damageList.length) newStates[i] = damageList[i];
+        else newStates[i] = 0;
+    }
+    window.state.status.health_states = newStates;
+    
+    if(renderPrintSheet) renderPrintSheet();
+    if(window.updatePools) window.updatePools();
+    showNotification("Battle Heal: 5 BP + 1 WP spent. 1 Level Healed.");
+};
+
 
 // --- STATE MANAGEMENT & POOL UPDATES ---
-
-// FIX: Removed duplicate updatePools() definition. 
-// It is now defined in ui-renderer.js to handle the advanced XP math.
 
 export function refreshTraitRow(label, type, targetEl) {
     let rowDiv = targetEl;
@@ -1129,7 +1251,6 @@ export function renderRow(contId, label, type, min, max = 5) {
 }
 window.renderRow = renderRow;
 
-// --- UPDATED setDots with Experience Mode ---
 export function setDots(name, type, val, min, max = 5) {
     if (window.state.isPlayMode) return;
 
