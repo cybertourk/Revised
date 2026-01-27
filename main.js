@@ -7,11 +7,13 @@ import {
     signInWithEmailAndPassword,
     signOut
 } from "./firebase-config.js";
+
 import { 
     APP_VERSION, CLANS, ARCHETYPES, PATHS, ATTRIBUTES, ABILITIES, 
     DISCIPLINES, BACKGROUNDS, VIRTUES, V20_MERITS_LIST, V20_FLAWS_LIST, VIT, 
     CLAN_WEAKNESSES, CLAN_DISCIPLINES, GEN_LIMITS 
 } from "./data.js";
+
 import * as FBManager from "./firebase-manager.js";
 
 // --- UI IMPORTS ---
@@ -142,6 +144,7 @@ window.state = {
     derangements: [], merits: [], flaws: [], inventory: [],
     retainers: [],
     rituals: [],
+    beastTraits: [], // Revised Gangrel Trait Storage
     primaryThaumPath: null,
     primaryNecroPath: null,
     meta: { filename: "", folder: "" },
@@ -224,6 +227,7 @@ function handleImport(event) {
             if(!window.state.rituals) window.state.rituals = []; 
             if(!window.state.sessionLogs) window.state.sessionLogs = []; 
             if(!window.state.codex) window.state.codex = []; 
+            if(!window.state.beastTraits) window.state.beastTraits = [];
             
             if (!window.state.currentPhase) window.state.currentPhase = 1;
             if (!window.state.furthestPhase) window.state.furthestPhase = 1;
