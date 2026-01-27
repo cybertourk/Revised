@@ -9,7 +9,8 @@ import {
 } from "./ui-common.js";
 
 import { 
-    updatePools 
+    updatePools,
+    hydrateInputs 
 } from "./ui-renderer.js";
 
 import { renderJournalTab } from "./ui-journal.js";
@@ -104,6 +105,12 @@ export function changeStep(s, updateGlobalState = true) {
     
     if (!window.state.isPlayMode && s === 6) {
         renderRitualsEdit();
+    }
+
+    // Finalize Step Logic
+    if (s === 8 && !window.state.isPlayMode) {
+        if(hydrateInputs) hydrateInputs();
+        if(renderPrintSheet) renderPrintSheet();
     }
 
     const target = document.getElementById(prefix + s);
@@ -278,6 +285,7 @@ const STEP_FOUR_TEXT = `
     <p>A starting character has <strong>5 dots</strong> worth of Backgrounds.</p>
     <h4 class="text-gold mt-2 font-bold uppercase">Virtues (7 Dots)</h4>
     <p>Virtues determine how well the character resists the Beast. Every character starts with 1 dot in Conscience, Self-Control, and Courage. You have <strong>7 additional dots</strong>.</p>
+    <p class="text-xs italic mt-2 text-gray-400">Note: In Revised Edition, your starting Willpower is equal to your Courage rating.</p>
 `;
 
 const GUIDE_TEXT = {
@@ -317,7 +325,7 @@ function createWalkthroughModal() {
             </div>
             <div id="wt-body" class="p-5 overflow-y-auto text-gray-300 text-sm leading-relaxed flex-1 font-serif"></div>
             <div class="p-3 border-t border-[#333] bg-[#111] flex justify-between items-center">
-                <span class="text-[10px] text-gray-500 italic">V20 Core Rules</span>
+                <span class="text-[10px] text-gray-500 italic">Revised Core Rules</span>
                 <button onclick="window.showCurrentPhaseInfo()" class="px-4 py-1 bg-[#8b0000] hover:bg-red-700 text-white text-xs font-bold rounded uppercase">Close</button>
             </div>
         </div>
@@ -352,12 +360,12 @@ window.showCurrentPhaseInfo = function() {
 // ==========================================================================
 
 const CREATION_TUTORIAL_STEPS = [
-    { title: "Welcome to V20", content: "This tool helps you create and manage Vampire: The Masquerade characters.<br><br>Let's take a quick tour.", targetId: "main-menubar", phase: 1 },
+    { title: "Welcome to V:tM Revised", content: "This tool helps you create and manage Vampire: The Masquerade (Revised Edition) characters.<br><br>Let's take a quick tour.", targetId: "main-menubar", phase: 1 },
     { title: "Navigation", content: "Use the navigation bar to switch between the 8 Phases of character creation.", targetId: "sheet-nav", phase: 1 },
     { title: "Data Entry", content: "Enter your character details here. All text inputs save automatically to your browser's local storage.", targetId: "phase-1", phase: 1 },
     { title: "Attributes & Dots", content: "Click dots to assign traits. In Creation Mode, the system validates against priority rules.", targetId: "list-attr-physical", phase: 2 },
     { title: "Freebie Mode", content: "Toggle <strong>Freebie Mode</strong> to spend starting points on Merits or extra dots.", targetId: "toggle-freebie-btn", phase: 1 },
-    { title: "Play Mode", content: "Click <strong>Play</strong> to switch to the interactive character sheet for game sessions.", targetId: "play-mode-btn", phase: 1 },
+    { title: "Play Mode", content: "Click <strong>Play</strong> to switch to the interactive character sheet for game sessions.<br><br><strong>Revised Mechanics:</strong> 1s cancel successes. Specialties explode on 10s.", targetId: "play-mode-btn", phase: 1 },
     { title: "Save & Export", content: "<strong>Save</strong> to cloud (login required).<br><strong>Export</strong> JSON for local backup.", targetId: ["file-actions-group", "utils-group"], phase: 1 }
 ];
 
