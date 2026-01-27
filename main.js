@@ -68,8 +68,9 @@ window.onerror = function(msg, url, line) {
     console.error("Global Error:", msg, "Line:", line);
 };
 
-// --- AUTO-SAVE SYSTEM (ENHANCED) ---
-const AUTOSAVE_KEY = 'v20_character_autosave_v1';
+// --- AUTO-SAVE SYSTEM (FIXED FOR REVISED EDITION) ---
+// Changed key to prevent collision with V20 app on same domain
+const AUTOSAVE_KEY = 'revised_character_autosave_v1';
 let autoSaveTimeout = null;
 
 // 1. Synchronous Save (Immediate)
@@ -78,8 +79,6 @@ function forceLocalSave() {
     try {
         const data = JSON.stringify(window.state);
         localStorage.setItem(AUTOSAVE_KEY, data);
-        // Optional: Console log for debugging, but kept quiet for production
-        // console.log("Force saved to local storage");
     } catch (e) {
         console.warn("Force save failed:", e);
     }
@@ -94,16 +93,14 @@ function triggerAutoSave() {
 }
 
 // 3. Browser Lifecycle Hooks (Save on Exit/Refresh/Hide)
-// Modern mobile/desktop support
 window.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
         forceLocalSave();
     }
 });
-window.addEventListener('pagehide', forceLocalSave); // Reliable on mobile Safari/Chrome
+window.addEventListener('pagehide', forceLocalSave); 
 window.addEventListener('beforeunload', (e) => {
     forceLocalSave();
-    // Standard "Unsaved Changes" prompt logic below
     e.preventDefault();
     e.returnValue = '';
 });
@@ -114,10 +111,8 @@ function loadAutoSave() {
         if (saved) {
             const parsed = JSON.parse(saved);
             if (parsed && parsed.dots) {
-                console.log("Restoring Auto-Save...");
+                console.log("Restoring Revised Auto-Save...");
                 window.state = parsed;
-                // REVERTED: Do not force reset to Phase 1. Respect saved phase.
-                // window.state.currentPhase = 1;
                 return true;
             }
         }
@@ -136,7 +131,7 @@ window.state = {
     activePool: [], 
     currentPhase: 1, 
     furthestPhase: 1,
-    characterImage: null, // New Field for Image Data
+    characterImage: null, 
     dots: { attr: {}, abil: {}, disc: {}, back: {}, virt: {}, other: {} },
     prios: { attr: {}, abil: {} },
     status: { humanity: 7, willpower: 5, tempWillpower: 5, health_states: [0,0,0,0,0,0,0], blood: 0 },
@@ -164,17 +159,14 @@ const beforeUnloadHandler = (e) => {
 };
 
 // --- BINDING EXPORTS TO WINDOW ---
-// Modified handleNew to clear AUTOSAVE_KEY
 window.handleNew = () => {
     if(confirm("Create New Character? Unsaved changes will be overwritten.")) {
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         localStorage.removeItem(AUTOSAVE_KEY);
-        // Reload Page (Cleanest reset)
         window.location.reload();
     }
 };
 
-// WRAPPER FOR MANUAL SAVE TO ENSURE LOCAL BACKUP
 const _cloudSave = FBManager.handleSaveClick;
 window.handleSaveClick = async () => {
     forceLocalSave(); // Save locally first
@@ -199,8 +191,8 @@ function handleExport() {
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     
-    let rawName = window.state.textFields?.['c-name'] || "v20-character";
-    rawName = rawName.replace(/[^a-z0-9\s-_]/gi, '').trim() || "v20-character";
+    let rawName = window.state.textFields?.['c-name'] || "revised-character";
+    rawName = rawName.replace(/[^a-z0-9\s-_]/gi, '').trim() || "revised-character";
     
     downloadAnchorNode.setAttribute("download", rawName + ".json");
     document.body.appendChild(downloadAnchorNode);
@@ -233,23 +225,17 @@ function handleImport(event) {
             if(!window.state.sessionLogs) window.state.sessionLogs = []; 
             if(!window.state.codex) window.state.codex = []; 
             
-            // Respect imported phase or default to 1 if missing
             if (!window.state.currentPhase) window.state.currentPhase = 1;
-
             if (!window.state.furthestPhase) window.state.furthestPhase = 1;
             if (window.state.status && window.state.status.tempWillpower === undefined) {
                 window.state.status.tempWillpower = window.state.status.willpower || 5;
             }
             if (window.state.status && (window.state.status.health_states === undefined || !Array.isArray(window.state.status.health_states))) {
-                const oldDamage = window.state.status.health || 0;
                 window.state.status.health_states = [0,0,0,0,0,0,0];
-                for(let i=0; i<oldDamage && i<7; i++) {
-                    window.state.status.health_states[i] = 2; 
-                }
             }
 
             window.fullRefresh();
-            forceLocalSave(); // Save the imported data immediately
+            forceLocalSave();
             window.showNotification("Character Imported");
 
         } catch (err) {
@@ -276,12 +262,9 @@ function applySmartLock(input) {
     }
 }
 
-// --- IMAGE UPLOAD HANDLER (HIGH RES + GDRIVE FIX) ---
-
-// Helper to convert Google Drive share links to direct view links
+// --- IMAGE UPLOAD HANDLER ---
 function convertGoogleDriveLink(url) {
     if (!url) return "";
-    // Regex for standard drive file view link
     const match = url.match(/\/d\/(.+)\//);
     if (match && match[1]) {
         return `https://drive.google.com/uc?export=view&id=${match[1]}`;
@@ -298,7 +281,6 @@ function handleImageUpload(e) {
     reader.onload = function(event) {
         const img = new Image();
         img.onload = function() {
-            // Resize logic - INCREASED RES FOR SHARPNESS
             const canvas = document.createElement('canvas');
             const MAX_WIDTH = 800; 
             const MAX_HEIGHT = 800;
@@ -306,15 +288,9 @@ function handleImageUpload(e) {
             let height = img.height;
 
             if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
             } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
+                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
             }
 
             canvas.width = width;
@@ -322,7 +298,6 @@ function handleImageUpload(e) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Save as compressed Base64
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
             window.state.characterImage = dataUrl;
             
@@ -338,15 +313,10 @@ function handleImageUpload(e) {
 // --- FULL UI REFRESH ---
 window.fullRefresh = function() {
     try {
-        console.log("Starting Full UI Refresh...");
-
-        // --- FIX: CRITICAL CLEANUP ---
-        // Remove file input values from state to prevent InvalidStateError on refresh
         if (window.state.textFields && window.state.textFields['char-img-input']) {
             delete window.state.textFields['char-img-input'];
         }
         
-        // 0. Sync Visual Mode
         const playBtn = document.getElementById('play-mode-btn');
         if (window.state.isPlayMode) {
             document.body.classList.add('play-mode');
@@ -362,10 +332,8 @@ window.fullRefresh = function() {
             }
         }
 
-        // 1. Safety: Ensure Base Rows Exist (Fix for missing rows)
         const checkAttr = document.getElementById('list-attr-physical');
         if (checkAttr && (!checkAttr.innerHTML || checkAttr.innerHTML.trim() === "")) {
-             console.log("Base rows missing during refresh. Re-rendering...");
              Object.keys(ATTRIBUTES).forEach(c => ATTRIBUTES[c].forEach(a => { 
                  if (window.state.dots.attr[a] === undefined) window.state.dots.attr[a] = 1; 
                  renderRow('list-attr-'+c.toLowerCase(), a, 'attr', window.state.dots.attr[a]); 
@@ -384,10 +352,8 @@ window.fullRefresh = function() {
              });
         }
 
-        // 2. Hydrate Text Fields
         hydrateInputs();
         
-        // 3. Render Dynamic Rows (Must happen before updatePools)
         renderDynamicAdvantageRow('list-disc', 'disc', DISCIPLINES);
         renderDynamicAdvantageRow('list-back', 'back', BACKGROUNDS);
         renderDynamicAdvantageRow('custom-talents', 'abil', [], true);
@@ -401,7 +367,6 @@ window.fullRefresh = function() {
         renderDynamicTraitRow('flaws-list-create', 'Flaw', V20_FLAWS_LIST);
         if(renderRitualsEdit) renderRitualsEdit();
         
-        // 4. Update Priorities
         if (window.state.prios) {
             document.querySelectorAll('.prio-btn').forEach(btn => {
                 const { cat, group, v } = btn.dataset;
@@ -411,11 +376,9 @@ window.fullRefresh = function() {
             });
         }
         
-        // 5. Refresh Trait Rows (Colors, dots, etc)
         Object.keys(ATTRIBUTES).forEach(c => ATTRIBUTES[c].forEach(a => { refreshTraitRow(a, 'attr'); }));
         Object.keys(ABILITIES).forEach(c => ABILITIES[c].forEach(a => { refreshTraitRow(a, 'abil'); }));
 
-        // 6. Other Traits
         for(let i=0; i<8; i++) {
             const nameInput = document.getElementById(`ot-n-${i}`);
             if(nameInput) {
@@ -426,13 +389,11 @@ window.fullRefresh = function() {
             }
         }
         
-        // 7. Virtues
         VIRTUES.forEach(v => {
             const row = document.querySelector(`#list-virt .dot-row[data-n="${v}"]`);
             if(row) row.innerHTML = renderDots(window.state.dots.virt[v] || 1, 5);
         });
 
-        // 8. Clan Specifics
         const currentClan = window.state.textFields['c-clan'];
         if (currentClan && CLAN_WEAKNESSES[currentClan]) {
             const weaknessArea = document.getElementById('c-clan-weakness');
@@ -442,17 +403,14 @@ window.fullRefresh = function() {
         renderSocialProfile();
         updateWalkthrough();
         
-        // --- 9. RENDER IMAGE (EDIT MODE) ---
         const imgDisplay = document.getElementById('char-img-display');
         const imgIcon = document.getElementById('char-img-icon');
         const removeBtn = document.getElementById('btn-remove-image');
 
         if(imgDisplay) {
             if (window.state.characterImage) {
-                // Ensure image is processed via converter if it's a Drive link
                 const displayUrl = convertGoogleDriveLink(window.state.characterImage);
                 imgDisplay.style.backgroundImage = `url('${displayUrl}')`;
-                
                 if(imgIcon) imgIcon.style.display = 'none';
                 if(removeBtn) removeBtn.classList.remove('hidden');
             } else {
@@ -462,13 +420,9 @@ window.fullRefresh = function() {
             }
         }
         
-        // 10. Update Pools (Logic & Visuals)
         if (window.updatePools) window.updatePools();
-        
-        // 11. Print Sheet
         if (renderPrintSheet) renderPrintSheet();
 
-        // 12. Locks
         setTimeout(() => {
             const inputs = document.querySelectorAll('#sheet-content input[type="text"], #sheet-content textarea, #sheet-content input[type="number"]');
             inputs.forEach(input => { applySmartLock(input); });
@@ -476,20 +430,16 @@ window.fullRefresh = function() {
         
         const freebieBtn = document.getElementById('toggle-freebie-btn');
         if(freebieBtn) freebieBtn.removeAttribute('disabled');
-
-        console.log("UI Refresh Complete.");
         
     } catch(e) {
         console.error("Refresh Error:", e);
         window.showNotification("Error Refreshing UI");
     } finally {
-        // 13. Navigate (Moved to finally block for safety)
         const targetStep = window.state.currentPhase || window.state.furthestPhase || 1;
         changeStep(targetStep);
     }
 };
 
-// --- HOOK INTO updatePools FOR AUTOSAVE ---
 const _originalUpdatePools = window.updatePools;
 window.updatePools = function() {
     if(typeof _originalUpdatePools === 'function') _originalUpdatePools();
@@ -498,21 +448,14 @@ window.updatePools = function() {
 
 function initUI() {
     try {
-        console.log("Initializing UI...");
+        console.log("Initializing Revised UI...");
         if (!document.getElementById('sheet-nav')) throw new Error("Navigation container missing.");
 
-        // --- LOAD DATA FIRST ---
         const loaded = loadAutoSave();
-        if(loaded) {
-             console.log("Data loaded synchronously.");
-        }
-
-        // --- PREVENT ACCIDENTAL EXIT & FORCE SAVE ---
+        
         window.addEventListener('beforeunload', beforeUnloadHandler);
 
-        // --- 1. SETUP BASE EVENT LISTENERS ---
-        
-        // Anti-Autofill
+        // Anti-Autofill & Setup
         const sensitiveInputs = ['c-name', 'c-player', 'c-sire', 'c-concept', 'c-chronicle'];
         sensitiveInputs.forEach(id => {
             const el = document.getElementById(id);
@@ -527,13 +470,9 @@ function initUI() {
             }
         });
 
-        const allInputs = document.querySelectorAll('input, textarea');
-        allInputs.forEach(input => { if(!input.id.startsWith('auth-')) input.setAttribute('autocomplete', 'off'); });
-
         const vSpan = document.getElementById('app-version');
         if(vSpan) vSpan.innerText = APP_VERSION;
 
-        // Render basic structure (Empty Rows) - NOW USING STATE VALUES
         const s1 = document.getElementById('list-attr-physical');
         if (s1) {
              Object.keys(ATTRIBUTES).forEach(c => ATTRIBUTES[c].forEach(a => { 
@@ -561,18 +500,15 @@ function initUI() {
         const vitalCont = document.getElementById('vitals-create-inputs');
         if(vitalCont) {
             vitalCont.innerHTML = ''; 
-            
-            // Generate text inputs first
             VIT.forEach(v => { 
                 const d = document.createElement('div'); 
                 d.innerHTML = `<label class="label-text">${v}</label><input type="text" id="bio-${v}">`; 
                 vitalCont.appendChild(d); 
             });
 
-            // --- INJECT IMAGE WRAPPER (MOVED TO BOTTOM OF BIO SECTION) ---
             const imgWrap = document.createElement('div');
             imgWrap.id = 'char-image-wrapper';
-            imgWrap.className = 'w-full flex justify-center mt-4 mb-2'; // Adjusted margin: top spacing, little bottom
+            imgWrap.className = 'w-full flex justify-center mt-4 mb-2';
             imgWrap.innerHTML = `
                 <div class="flex flex-col items-center">
                     <div id="char-img-display" title="Click to upload or right-click to paste URL" 
@@ -588,7 +524,6 @@ function initUI() {
             `;
             vitalCont.appendChild(imgWrap);
 
-            // Add Listeners immediately
             const display = imgWrap.querySelector('#char-img-display');
             const input = imgWrap.querySelector('#char-img-input');
             const removeBtn = imgWrap.querySelector('#btn-remove-image');
@@ -597,9 +532,8 @@ function initUI() {
             display.onclick = () => input.click();
             input.onchange = (e) => handleImageUpload(e);
             
-            // URL Handler
             urlBtn.onclick = () => {
-                let url = prompt("Paste Image URL (e.g. from Discord, Imgur, or Google Drive):");
+                let url = prompt("Paste Image URL:");
                 if(url) {
                     url = convertGoogleDriveLink(url);
                     window.state.characterImage = url;
@@ -614,7 +548,6 @@ function initUI() {
                 window.fullRefresh();
                 triggerAutoSave();
             };
-            // --- END INJECT ---
         }
         
         renderDynamicTraitRow('merits-list-create', 'Merit', V20_MERITS_LIST);
@@ -683,9 +616,7 @@ function initUI() {
         document.body.addEventListener('change', (e) => {
             if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
                 if(e.target.id && !e.target.id.startsWith('search')) { 
-                    // FIX: IGNORE FILE INPUTS TO PREVENT CRASH
                     if (e.target.type === 'file') return;
-
                     window.state.textFields[e.target.id] = e.target.value; 
                     if (e.target.id === 'c-xp-total') window.updatePools();
                     renderPrintSheet();
@@ -853,8 +784,6 @@ function initUI() {
             window.updatePools();
         });
 
-        // 2. FORCE SYNC AT END OF INIT
-        // Ensure pools and initial UI state are consistent
         setTimeout(() => window.fullRefresh(), 200);
 
     } catch(e) {
@@ -886,7 +815,7 @@ function updateAuthUI(u) {
             userInfo.style.display = 'none';
         }
         if (u && u.isAnonymous) {
-            const dismissed = sessionStorage.getItem('v20_guest_dismissed');
+            const dismissed = sessionStorage.getItem('revised_guest_dismissed'); // Updated key
             if (!dismissed) {
                 setTimeout(() => {
                     document.getElementById('guest-prompt-modal').classList.add('active');
@@ -897,7 +826,7 @@ function updateAuthUI(u) {
 }
 
 function checkTutorialStatus() {
-    if (!localStorage.getItem('v20_tutorial_complete')) {
+    if (!localStorage.getItem('revised_tutorial_complete')) { // Updated key
         setTimeout(() => {
             if(window.startTutorial) window.startTutorial();
         }, 1500); 
@@ -913,7 +842,6 @@ onAuthStateChanged(auth, async (u) => {
         console.log("User signed in:", user.uid);
 
         try {
-            // Populate Dropdowns First
             const ns = document.getElementById('c-nature');
             const ds = document.getElementById('c-demeanor');
             if(ns && ds && typeof ARCHETYPES !== 'undefined') {
@@ -965,7 +893,6 @@ onAuthStateChanged(auth, async (u) => {
                 triggerAutoSave();
             });
 
-            // Re-apply Clan Weakness Text from State if present
             const currentClan = document.getElementById('c-clan')?.value;
             if (currentClan && CLAN_WEAKNESSES[currentClan]) {
                 const weaknessArea = document.getElementById('c-clan-weakness');
@@ -978,7 +905,6 @@ onAuthStateChanged(auth, async (u) => {
             if(loader) loader.style.display = 'none';
             checkTutorialStatus();
 
-            // Force Full Refresh to ensure UI matches State after Auth
             setTimeout(() => window.fullRefresh(), 500);
 
         } catch (dbErr) {
@@ -1070,12 +996,10 @@ function populateGuestUI() {
         triggerAutoSave();
     });
     
-    // Force a full refresh to ensure all dynamic rows are built
     setTimeout(() => window.fullRefresh(), 500);
     
     const loader = document.getElementById('loading-overlay');
     if(loader) loader.style.display = 'none';
 }
 
-// Make sure initUI runs when DOM is loaded, not just script load
 document.addEventListener('DOMContentLoaded', initUI);
