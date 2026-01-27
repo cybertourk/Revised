@@ -77,6 +77,7 @@ export function renderDynamicAdvantageRow(containerId, type, list, isAbil = fals
             let html = `<option value="">-- Select --</option>`;
             list.forEach(item => {
                 const val = typeof item === 'string' ? item : item.name;
+                // Prevent selecting parent magic skills directly if handled by magic section
                 if ((val === 'Thaumaturgy' || val === 'Necromancy') && window.state.dots.disc[val]) return;
                 const isSelected = name === val;
                 html += `<option value="${val}" ${isSelected ? 'selected' : ''}>${val}</option>`;
@@ -1195,7 +1196,8 @@ export function renderBloodBondRow() {
         `;
         
         const typeSel = row.querySelector('select'); 
-        const nI = row.querySelector('input[type="text"]'); 
+        const nI = row.querySelector('input[type="text"]').value; 
+        const nInp = row.querySelector('input[type="text"]');
         const rI = row.querySelector('input[type="number"]'); 
         const del = row.querySelector('.remove-btn');
         
@@ -1216,7 +1218,7 @@ export function renderBloodBondRow() {
                 rating: r.querySelector('input[type="number"]').value 
             })).filter(b => b.name); 
             
-            if (cont.lastElementChild === row && nI.value !== "") { 
+            if (cont.lastElementChild === row && nInp.value !== "") { 
                 del.style.visibility = 'visible'; 
                 buildRow(); 
             } 
@@ -1225,7 +1227,7 @@ export function renderBloodBondRow() {
         };
         
         typeSel.onchange = onUpd; 
-        nI.onblur = onUpd; 
+        nInp.onblur = onUpd; 
         rI.onblur = onUpd; 
         del.onclick = () => { row.remove(); if(cont.children.length === 0) buildRow(); onUpd(); }; 
         cont.appendChild(row);
