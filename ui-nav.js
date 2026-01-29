@@ -442,7 +442,8 @@ window.closeTutorial = function() {
     document.body.classList.remove('tutorial-active');
     document.querySelectorAll('.tutorial-highlight').forEach(el => el.classList.remove('tutorial-highlight'));
     changeStep(preTutorialPhase, false);
-    const key = activeTutorialKey === 'play' ? 'v20_play_tutorial_complete' : 'v20_tutorial_complete';
+    // FIX: Updated keys to match Revised Edition checks in main.js and ui-play.js
+    const key = activeTutorialKey === 'play' ? 'revised_play_tutorial_complete' : 'revised_tutorial_complete';
     localStorage.setItem(key, 'true');
 };
 
