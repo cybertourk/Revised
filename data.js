@@ -1,7 +1,7 @@
 // DATA CONSTANTS - REVISED EDITION
 // Source: Vampire: The Masquerade Revised Edition Core Rulebook
 
-export const APP_VERSION = "Revised v1.0.2";
+export const APP_VERSION = "Revised v1.0.3";
 
 export const CLANS = [
     "Assamite", "Brujah", "Followers of Set", "Gangrel", "Giovanni", 
@@ -329,19 +329,19 @@ export const V20_VEHICLES_LIST = [
 ];
 
 export const CLAN_WEAKNESSES = {
-    "Assamite": "Blood Curse: Cannot drink Kindred blood. If they do, they take 1 level of unsoakable lethal damage per blood point.",
-    "Brujah": "+2 Difficulty to resist Frenzy.",
-    "Followers of Set": "Extremely sensitive to sunlight. Double damage from sun. -1 die to all rolls in bright light.",
-    "Gangrel": "Gains an animal feature after every frenzy. 5 features = Permanent loss of 1 Social Attribute point.",
-    "Giovanni": "The Kiss causes excruciating pain, not pleasure. Often kills mortals from shock.",
-    "Lasombra": "Cast no reflection.",
-    "Malkavian": "Afflicted with a permanent, incurable Derangement. Cannot spend Willpower to ignore it.",
-    "Nosferatu": "Appearance 0. Fails all Appearance rolls automatically.",
-    "Ravnos": "Compelled to indulge in a specific vice. Willpower roll (Diff 6) to resist.",
-    "Toreador": "Entranced by beauty. Willpower roll (Diff 6) to break fascination or be immobilized.",
-    "Tremere": "Blood bond to the Council of Seven (start with 1 step towards Council). +1 difficulty to resist Dominate from elders.",
-    "Tzimisce": "Must sleep in two handfuls of native soil. Halve dice pools every 24h without it.",
-    "Ventrue": "Restricted feeding (specific prey type). Cannot feed from anything else.",
+    "Assamite": "Clan Flaw: Blood Addiction. Whenever tasting Kindred blood, make a Self-Control roll (Diff 3 + Blood Points ingested). Failure = Addiction.",
+    "Brujah": "Prone to anger. The difficulty of rolls to resist frenzy are two higher than normal.",
+    "Followers of Set": "Severe allergy to bright lights and sunlight. Take 2 levels of aggravated damage from sunlight per turn. Subtract 1 die from all pools in bright light.",
+    "Gangrel": "Very close to the Beast. Every time they frenzy, they gain an animalistic feature. For every 5 features, 1 Social Attribute is permanently reduced by 1.",
+    "Giovanni": "The Kiss causes excruciating pain rather than pleasure. Often kills the victim from shock before death by blood loss.",
+    "Lasombra": "Cast no reflection. Cannot be seen in mirrors, water, or cameras. Take an extra level of aggravated damage from sunlight.",
+    "Malkavian": "Irredeemably insane. Must choose at least one derangement at creation. Can be temporarily fought with Willpower, but never permanently overcome.",
+    "Nosferatu": "Twisted into hideous monsters. Appearance rating is zero and cannot be increased. Most Social actions based on first impressions fail automatically.",
+    "Ravnos": "Addicted to a specific vice or crime. Must make a Self-Control roll (Diff 6) to resist indulging when the opportunity presents itself.",
+    "Toreador": "Attuned to the aesthetic. When viewing something beautiful, must make a Self-Control roll (Diff 6) or stand in rapt fascination until the scene ends.",
+    "Tremere": "Must drink the blood of the clan's seven elders when created. Starts with at least one step toward being blood bound to the Council.",
+    "Tzimisce": "Tied to their domains. Must sleep with at least two handfuls of native earth. Failure halves dice pools every 24 hours until condition is met.",
+    "Ventrue": "Rarefied tastes. May only feed on a specific type of mortal blood chosen at creation. Will not feed on any other type, even if starving.",
     "Caitiff": "No clan advantages. Purchase all Disciplines at 6x current rating (no in-clan discount)."
 };
 
