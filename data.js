@@ -1,7 +1,7 @@
 // DATA CONSTANTS - REVISED EDITION
 // Source: Vampire: The Masquerade Revised Edition Core Rulebook
 
-export const APP_VERSION = "Revised v1.0.3";
+export const APP_VERSION = "Revised v1.0.4";
 
 export const CLANS = [
     "Assamite", "Brujah", "Followers of Set", "Gangrel", "Giovanni", 
@@ -21,7 +21,7 @@ export const ARCHETYPES = [
 ];
 
 export const ARCHETYPE_RULES = {
-    // (Simplified rules based on Revised Core)
+ // (Simplified rules based on Revised Core)
     "Architect": "Regain Willpower when you establish something of importance or lasting value.",
     "Autocrat": "Regain Willpower when you achieve control over a group or organization.",
     "Bon Vivant": "Regain Willpower when you truly enjoy yourself.",
@@ -94,7 +94,7 @@ export const CLAN_DISCIPLINES = {
     "Gangrel": ["Animalism", "Fortitude", "Protean"],
     "Giovanni": ["Dominate", "Necromancy", "Potence"],
     "Lasombra": ["Dominate", "Obtenebration", "Potence"],
-    "Malkavian": ["Auspex", "Dementation", "Obfuscate"], // Revised era often includes Dementation (Guide to Camarilla)
+    "Malkavian": ["Auspex", "Dementation", "Obfuscate"],
     "Nosferatu": ["Animalism", "Obfuscate", "Potence"],
     "Ravnos": ["Animalism", "Chimerstry", "Fortitude"],
     "Toreador": ["Auspex", "Celerity", "Presence"],
@@ -172,7 +172,7 @@ export const SPECIALTY_EXAMPLES = {
     "Perception": ["Attentive", "Insightful", "Careful", "Discerning", "Experienced"],
     "Intelligence": ["Book Knowledge", "Creative", "Analytical", "Problem Solver", "Subject Authority"],
     "Wits": ["Getting the Jump on Others", "Snappy Patter", "Changes in Strategy", "Ambushes"],
-
+    
     // Talents
     "Alertness": ["Noises", "Eavesdropping", "Ambushes", "Hidden Weapons", "Crowds", "Forests", "Animals"],
     "Athletics": ["Swimming", "Rock Climbing", "Acrobatics", "Dancing", "Endurance Running", "Sports"],
@@ -184,7 +184,7 @@ export const SPECIALTY_EXAMPLES = {
     "Leadership": ["Oratory", "Compelling", "Friendly", "Open", "Noble", "Military", "Commands"],
     "Streetwise": ["Fencing", "Illegal Drugs", "Illegal Weapons", "Rumors", "Gangs", "Pickpocketing", "Local Slang"],
     "Subterfuge": ["Seduction", "Impeccable Lies", "Feigning Mortality"],
-
+    
     // Skills
     "Animal Ken": ["Dogs", "Attack Training", "Big Cats", "Horses", "Farm Animals", "Falconry"],
     "Crafts": ["Pottery", "Sewing", "Home Repair", "Carpentry", "Appraisal", "Carburetors"],
@@ -195,9 +195,9 @@ export const SPECIALTY_EXAMPLES = {
     "Performance": ["Dancing", "Singing", "Rock and Roll", "Acting", "Guitar Solos", "Drunken Karaoke"],
     "Security": ["Safe-cracking", "Hot-wiring", "Electrical Alarms", "Pressure Plates", "Deadbolts", "Cars"],
     "Stealth": ["Hiding", "Silent Movement", "Shadowing", "Crowds"],
-    "Survival": ["Tracking", "Woodlands", "Jungle", "Trapping", "Hunting"],
-
+    
     // Knowledges
+    "Survival": ["Tracking", "Woodlands", "Jungle", "Trapping", "Hunting"],
     "Academics": ["Poststructuralism", "Impressionist Painting", "Imperial Rome", "American Realism"],
     "Computer": ["Computer Languages", "Internet", "Codebreaking", "Viruses", "Data Retrieval"],
     "Finance": ["Stock Market", "Laundering", "Appraisal", "Foreign Currencies", "Accounting", "Fencing", "Corporations"],
@@ -212,120 +212,79 @@ export const SPECIALTY_EXAMPLES = {
 
 // Revised Merits & Flaws (Core Book p. 296+)
 export const V20_MERITS_LIST = [
-    { n: "Acute Sense", v: 1 },
-    { n: "Ambidextrous", v: 1 },
-    { n: "Eat Food", v: 1 },
-    { n: "Catlike Balance", v: 1 },
-    { n: "Blush of Health", v: 2 },
-    { n: "Enchanting Voice", v: 2 },
-    { n: "Daredevil", v: 3 },
-    { n: "Efficient Digestion", v: 3 },
-    { n: "Huge Size", v: 4 },
-    { n: "Common Sense", v: 1 },
-    { n: "Concentration", v: 1 },
-    { n: "Time Sense", v: 1 },
-    { n: "Code of Honor", v: 2 },
-    { n: "Eidetic Memory", v: 2 },
-    { n: "Light Sleeper", v: 2 },
-    { n: "Natural Linguist", v: 2 },
-    { n: "Calm Heart", v: 3 },
-    { n: "Iron Will", v: 3 },
-    { n: "Prestigious Sire", v: 1 },
-    { n: "Natural Leader", v: 1 },
-    { n: "Debt of Gratitude", v: 1, variable: true, range: "1-3" },
-    { n: "True Love", v: 4 },
-    { n: "Medium", v: 2 },
-    { n: "Magic Resistance", v: 2 },
-    { n: "Oracular Ability", v: 3 },
-    { n: "Spirit Mentor", v: 3 },
-    { n: "Unbondable", v: 3 },
-    { n: "Luck", v: 3 },
-    { n: "True Faith", v: 7 }
+    { n: "Acute Sense", v: 1 }, { n: "Ambidextrous", v: 1 }, { n: "Eat Food", v: 1 }, { n: "Catlike Balance", v: 1 },
+    { n: "Blush of Health", v: 2 }, { n: "Enchanting Voice", v: 2 }, { n: "Daredevil", v: 3 }, { n: "Efficient Digestion", v: 3 },
+    { n: "Huge Size", v: 4 }, { n: "Common Sense", v: 1 }, { n: "Concentration", v: 1 }, { n: "Time Sense", v: 1 },
+    { n: "Code of Honor", v: 2 }, { n: "Eidetic Memory", v: 2 }, { n: "Light Sleeper", v: 2 }, { n: "Natural Linguist", v: 2 },
+    { n: "Calm Heart", v: 3 }, { n: "Iron Will", v: 3 }, { n: "Prestigious Sire", v: 1 }, { n: "Natural Leader", v: 1 },
+    { n: "Debt of Gratitude", v: 1, variable: true, range: "1-3" }, { n: "True Love", v: 4 }, { n: "Medium", v: 2 },
+    { n: "Magic Resistance", v: 2 }, { n: "Oracular Ability", v: 3 }, { n: "Spirit Mentor", v: 3 }, { n: "Unbondable", v: 3 },
+    { n: "Luck", v: 3 }, { n: "True Faith", v: 7 }
 ].sort((a, b) => a.n.localeCompare(b.n));
 
 export const V20_FLAWS_LIST = [
-    { n: "Hard of Hearing", v: 1 },
-    { n: "Short", v: 1 },
-    { n: "Smell of the Grave", v: 1 },
-    { n: "Bad Sight", v: 2 },
-    { n: "One Eye", v: 2 },
-    { n: "Disfigured", v: 2 },
-    { n: "Deformity", v: 3 },
-    { n: "Lame", v: 3 },
-    { n: "Monstrous", v: 3 },
-    { n: "Permanent Wound", v: 3 },
-    { n: "Slow Healing", v: 3 },
-    { n: "Deaf", v: 4 },
-    { n: "Mute", v: 4 },
-    { n: "Thin Blood", v: 4 },
-    { n: "Flesh of the Corpse", v: 5 },
-    { n: "Blind", v: 6 },
-    { n: "Deep Sleeper", v: 1 },
-    { n: "Nightmares", v: 1 },
-    { n: "Phobia", v: 2 },
-    { n: "Shy", v: 1 },
-    { n: "Soft-Hearted", v: 1 },
-    { n: "Speech Impediment", v: 1 },
-    { n: "Short Fuse", v: 2 },
-    { n: "Territorial", v: 2 },
-    { n: "Vengeful", v: 2 },
-    { n: "Amnesia", v: 2 },
-    { n: "Lunacy", v: 2 },
-    { n: "Weak-Willed", v: 3 },
-    { n: "Conspicuous Consumption", v: 4 },
-    { n: "Dark Secret", v: 1 },
-    { n: "Infamous Sire", v: 1 },
-    { n: "Mistaken Identity", v: 1 },
-    { n: "Sire's Resentment", v: 1 },
-    { n: "Enemy", v: 1, variable: true, range: "1-5" },
-    { n: "Hunted", v: 4 },
-    { n: "Probationary Sect Member", v: 4 },
-    { n: "Cast No Reflection", v: 1 },
-    { n: "Repulsed by Garlic", v: 1 },
-    { n: "Touch of Frost", v: 1 },
-    { n: "Cursed", v: 1, variable: true, range: "1-5" },
-    { n: "Beacon of the Unholy", v: 2 },
-    { n: "Eerie Presence", v: 2 },
-    { n: "Haunted", v: 3 },
-    { n: "Repelled by Crosses", v: 3 },
-    { n: "Grip of the Damned", v: 4 },
-    { n: "Dark Fate", v: 5 },
-    { n: "Light-Sensitive", v: 5 }
+    { n: "Hard of Hearing", v: 1 }, { n: "Short", v: 1 }, { n: "Smell of the Grave", v: 1 }, { n: "Bad Sight", v: 2 },
+    { n: "One Eye", v: 2 }, { n: "Disfigured", v: 2 }, { n: "Deformity", v: 3 }, { n: "Lame", v: 3 }, { n: "Monstrous", v: 3 },
+    { n: "Permanent Wound", v: 3 }, { n: "Slow Healing", v: 3 }, { n: "Deaf", v: 4 }, { n: "Mute", v: 4 }, { n: "Thin Blood", v: 4 },
+    { n: "Flesh of the Corpse", v: 5 }, { n: "Blind", v: 6 }, { n: "Deep Sleeper", v: 1 }, { n: "Nightmares", v: 1 }, { n: "Phobia", v: 2 },
+    { n: "Shy", v: 1 }, { n: "Soft-Hearted", v: 1 }, { n: "Speech Impediment", v: 1 }, { n: "Short Fuse", v: 2 }, { n: "Territorial", v: 2 },
+    { n: "Vengeful", v: 2 }, { n: "Amnesia", v: 2 }, { n: "Lunacy", v: 2 }, { n: "Weak-Willed", v: 3 }, { n: "Conspicuous Consumption", v: 4 },
+    { n: "Dark Secret", v: 1 }, { n: "Infamous Sire", v: 1 }, { n: "Mistaken Identity", v: 1 }, { n: "Sire's Resentment", v: 1 },
+    { n: "Enemy", v: 1, variable: true, range: "1-5" }, { n: "Hunted", v: 4 }, { n: "Probationary Sect Member", v: 4 },
+    { n: "Cast No Reflection", v: 1 }, { n: "Repulsed by Garlic", v: 1 }, { n: "Touch of Frost", v: 1 }, { n: "Cursed", v: 1, variable: true, range: "1-5" },
+    { n: "Beacon of the Unholy", v: 2 }, { n: "Eerie Presence", v: 2 }, { n: "Haunted", v: 3 }, { n: "Repelled by Crosses", v: 3 },
+    { n: "Grip of the Damned", v: 4 }, { n: "Dark Fate", v: 5 }, { n: "Light-Sensitive", v: 5 }
 ].sort((a, b) => a.n.localeCompare(b.n));
 
+// --- REVISED EDITION VEHICLES ---
+export const V20_VEHICLES_LIST = [
+    { name: "6-Wheel Truck", safe: "60", max: "90", man: "3" },
+    { name: "Tank (modern)", safe: "60", max: "100", man: "4" },
+    { name: "Tank (WWII)", safe: "30", max: "40", man: "3" },
+    { name: "Bus", safe: "60", max: "100", man: "3" },
+    { name: "18-Wheeler", safe: "70", max: "110", man: "4" },
+    { name: "Sedan", safe: "70", max: "120", man: "5" },
+    { name: "Minivan", safe: "70", max: "120", man: "6" },
+    { name: "Compact", safe: "70", max: "130", man: "6" },
+    { name: "Sporty Compact", safe: "100", max: "140", man: "7" },
+    { name: "Sport Coupe", safe: "110", max: "150", man: "8" },
+    { name: "Sports Car", safe: "110", max: "160", man: "8" },
+    { name: "Exotic Car", safe: "130", max: "190+", man: "9" },
+    { name: "Luxury Sedan", safe: "85", max: "155", man: "7" },
+    { name: "Midsize", safe: "75", max: "125", man: "6" },
+    { name: "SUV", safe: "70", max: "115", man: "6" },
+    { name: "Formula One Racer", safe: "140", max: "240", man: "10" }
+];
+
+// --- REVISED EDITION MELEE WEAPONS ---
 export const V20_WEAPONS_LIST = [
     { name: "Sap/Blackjack", diff: 4, dmg: "Str+1(B)", range: "-", rate: "-", clip: "-", conc: "P" },
     { name: "Club", diff: 4, dmg: "Str+2(B)", range: "-", rate: "-", clip: "-", conc: "T" },
     { name: "Knife", diff: 4, dmg: "Str+1(L)", range: "-", rate: "-", clip: "-", conc: "J" },
-    { name: "Sword", diff: 6, dmg: "Str+4(L)", range: "-", rate: "-", clip: "-", conc: "T" },
-    { name: "Axe", diff: 7, dmg: "Str+5(L)", range: "-", rate: "-", clip: "-", conc: "N" },
+    { name: "Sword", diff: 6, dmg: "Str+2(L)", range: "-", rate: "-", clip: "-", conc: "T" },
+    { name: "Axe", diff: 7, dmg: "Str+3(L)", range: "-", rate: "-", clip: "-", conc: "N" },
     { name: "Stake", diff: 6, dmg: "Str+1(L)", range: "-", rate: "-", clip: "-", conc: "T" },
-    { name: "Revolver, Lt.", diff: 6, dmg: "4(L)", range: "12", rate: "3", clip: "6", conc: "P" },
-    { name: "Revolver, Hvy.", diff: 6, dmg: "6(L)", range: "35", rate: "2", clip: "6", conc: "J" },
-    { name: "Pistol, Lt.", diff: 6, dmg: "4(L)", range: "20", rate: "4", clip: "17+1", conc: "P" },
-    { name: "Pistol, Hvy.", diff: 6, dmg: "5(L)", range: "25", rate: "3", clip: "7+1", conc: "J" },
-    { name: "Rifle", diff: 8, dmg: "8(L)", range: "200", rate: "1", clip: "5+1", conc: "N" },
-    { name: "SMG, Small", diff: 6, dmg: "4(L)", range: "25", rate: "3", clip: "30+1", conc: "J" },
-    { name: "SMG, Large", diff: 6, dmg: "4(L)", range: "50", rate: "3", clip: "32+1", conc: "T" },
-    { name: "Shotgun", diff: 6, dmg: "8(L)", range: "20", rate: "1", clip: "5+1", conc: "T" },
+    // Ranged Weapons
+    { name: "Revolver, Lt. (.38)", diff: 6, dmg: "4(L)", range: "12", rate: "3", clip: "6", conc: "P" },
+    { name: "Revolver, Hvy. (.44)", diff: 6, dmg: "6(L)", range: "35", rate: "2", clip: "6", conc: "J" },
+    { name: "Pistol, Lt. (9mm)", diff: 6, dmg: "4(L)", range: "20", rate: "4", clip: "17+1", conc: "P" },
+    { name: "Pistol, Hvy. (.45 ACP)", diff: 6, dmg: "5(L)", range: "30", rate: "3", clip: "7+1", conc: "J" },
+    { name: "Rifle (30.06)", diff: 8, dmg: "8(L)", range: "200", rate: "1", clip: "5+1", conc: "N" },
+    { name: "SMG, Small (9mm)", diff: 6, dmg: "4(L)", range: "25", rate: "3", clip: "30+1", conc: "J" },
+    { name: "SMG, Large (9mm)", diff: 6, dmg: "4(L)", range: "50", rate: "3", clip: "32+1", conc: "T" },
+    { name: "Assault Rifle (5.56mm)", diff: 7, dmg: "7(L)", range: "150", rate: "3", clip: "42+1", conc: "N" },
+    { name: "Shotgun (12-Gauge)", diff: 6, dmg: "8(L)", range: "20", rate: "1", clip: "5+1", conc: "T" },
+    { name: "Shotgun, Semi-auto (12-Gauge)", diff: 6, dmg: "8(L)", range: "20", rate: "3", clip: "8+1", conc: "T" },
     { name: "Crossbow", diff: 7, dmg: "5(L)", range: "20", rate: "1", clip: "1", conc: "T" }
 ];
 
+// --- REVISED EDITION ARMOR ---
 export const V20_ARMOR_LIST = [
-    { name: "Clothing (Heavy)", rating: 1, penalty: 0 },
-    { name: "Armor T-Shirt", rating: 2, penalty: 1 },
-    { name: "Kevlar Vest", rating: 3, penalty: 1 },
-    { name: "Flak Jacket", rating: 4, penalty: 2 },
-    { name: "Full Riot Gear", rating: 5, penalty: 3 }
-];
-
-export const V20_VEHICLES_LIST = [
-    { name: "Motorcycle", safe: "70", max: "130", man: "8" },
-    { name: "Compact Car", safe: "60", max: "100", man: "6" },
-    { name: "Mid-size Car", safe: "65", max: "110", man: "6" },
-    { name: "Sports Car", safe: "80", max: "150", man: "8" },
-    { name: "Truck/SUV", safe: "60", max: "90", man: "5" },
-    { name: "Van", safe: "55", max: "85", man: "4" }
+    { name: "Class One (Reinforced Clothing)", rating: 1, penalty: 0 },
+    { name: "Class Two (Armor T-Shirt)", rating: 2, penalty: 1 },
+    { name: "Class Three (Kevlar Vest)", rating: 3, penalty: 1 },
+    { name: "Class Four (Flak Jacket)", rating: 4, penalty: 2 },
+    { name: "Class Five (Full Riot Gear)", rating: 5, penalty: 3 }
 ];
 
 export const CLAN_WEAKNESSES = {
