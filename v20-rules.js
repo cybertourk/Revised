@@ -1,47 +1,65 @@
+/**
+ * v20-rules.js (Revised Edition Implementation)
+ * Core logic for mechanics, costs, and validation.
+ * * * NOTE: Despite the filename, this code strictly follows 
+ * Vampire: The Masquerade Revised Edition (1998) rules.
+ */
+
 import { 
     ATTRIBUTES, ABILITIES, VIRTUES, GEN_LIMITS 
 } from "./data.js";
 
 // --- CONSTANTS ---
 
+/**
+ * Abilities that usually require a specialty or represent broad categories
+ * where the Storyteller may require specific focus (Revised Core p. 119-121).
+ */
 export const BROAD_ABILITIES = [
-    "Crafts", "Academics", "Science", "Technology", "Performance", "Expression"
+    "Crafts", "Academics", "Science", "Performance", "Medicine", "Expression"
 ];
 
 // --- CALCULATORS ---
 
 /**
  * Calculates the total Freebie Points spent based on Revised Edition Rules (1998).
- * Assumes the character has ALREADY met the base creation requirements.
- * Any dots above the creation limits are charged.
- * @param {Object} state - The character state object.
+ * Revised Core p. 122:
+ * Attributes: 5 pts per dot
+ * Abilities: 2 pts per dot
+ * Disciplines: 7 pts per dot
+ * Backgrounds: 1 pt per dot
+ * Virtues: 2 pts per dot
+ * Humanity: 1 pt per dot
+ * Willpower: 1 pt per dot
+ * * @param {Object} state - The character state object.
  * @returns {number} Total freebie points spent.
  */
 export function calculateTotalFreebiesSpent(state) {
     let spent = 0;
 
     // 1. Attributes (5 pts per dot)
+    // Base is 3 (Physical) + 3 (Social) + 3 (Mental) = 9 (Everyone starts with 1)
+    // Plus Priorities 7+5+3 = 15. Total free Attributes = 24.
     let totalAttr = 0;
     Object.keys(ATTRIBUTES).forEach(cat => {
         ATTRIBUTES[cat].forEach(a => {
             totalAttr += (state.dots.attr[a] || 1);
         });
     });
-    // Base is 3 (Physical) + 3 (Social) + 3 (Mental) = 9 (Everyone starts with 1)
-    // Plus Priorities 7+5+3 = 15. Total free Attributes = 24.
     if (totalAttr > 24) spent += (totalAttr - 24) * 5;
 
     // 2. Abilities (2 pts per dot)
+    // Base is 13+9+5 = 27 dots. All abilities start at 0.
     let totalAbil = 0;
     Object.keys(ABILITIES).forEach(cat => {
         ABILITIES[cat].forEach(a => {
             totalAbil += (state.dots.abil[a] || 0);
         });
     });
+    
     // Add custom abilities (Hobby Talent/Skill/Knowledge)
     if (state.customAbilityCategories) {
         Object.keys(state.dots.abil).forEach(k => {
-            // Only count if it's a custom entry (not in main list)
             let isStandard = false;
             Object.values(ABILITIES).forEach(arr => { if(arr.includes(k)) isStandard = true; });
             if (!isStandard && state.customAbilityCategories[k]) {
@@ -50,26 +68,24 @@ export function calculateTotalFreebiesSpent(state) {
         });
     }
     
-    // Base is 13+9+5 = 27 dots. All abilities start at 0.
     if (totalAbil > 27) spent += (totalAbil - 27) * 2;
 
     // 3. Disciplines (7 pts per dot)
+    // Base: 3 dots.
     let totalDisc = 0;
     Object.values(state.dots.disc || {}).forEach(v => totalDisc += v);
-    // Base: 3 dots.
     if (totalDisc > 3) spent += (totalDisc - 3) * 7;
 
     // 4. Backgrounds (1 pt per dot)
+    // Base: 5 dots.
     let totalBack = 0;
     Object.values(state.dots.back || {}).forEach(v => totalBack += v);
-    // Base: 5 dots.
     if (totalBack > 5) spent += (totalBack - 5) * 1;
 
     // 5. Virtues (2 pts per dot)
+    // Base: 3 (base) + 7 (assign) = 10.
     let totalVirt = 0;
     VIRTUES.forEach(v => totalVirt += (state.dots.virt[v] || 1));
-    // Base: 7 dots distributed. Everyone starts with 1 in each (3 total).
-    // So total dots = 3 (base) + 7 (assign) = 10.
     if (totalVirt > 10) spent += (totalVirt - 10) * 2;
 
     // 6. Humanity / Path (1 pt per dot)
@@ -79,16 +95,18 @@ export function calculateTotalFreebiesSpent(state) {
     if (currentH > baseH) spent += (currentH - baseH) * 1;
 
     // 7. Willpower (1 pt per dot)
+    // Revised Core: Starts at Courage rating.
     const baseW = state.dots.virt?.Courage || 1;
     const currentW = state.status.willpower !== undefined ? state.status.willpower : baseW;
     if (currentW > baseW) spent += (currentW - baseW) * 1;
 
     // 8. Merits (Cost) & Flaws (Bonus)
+    // Revised Core p. 296: Max 7 points of Flaws.
     if (state.merits) state.merits.forEach(m => spent += (parseInt(m.val) || 0));
     
     let flawBonus = 0;
     if (state.flaws) state.flaws.forEach(f => flawBonus += (parseInt(f.val) || 0));
-    const effectiveBonus = Math.min(flawBonus, 7); // Max 7 points of flaws return points
+    const effectiveBonus = Math.min(flawBonus, 7); 
     spent -= effectiveBonus;
 
     return spent;
@@ -125,7 +143,6 @@ export function checkCreationComplete(state) {
     for (const [group, val] of Object.entries(state.prios.abil)) {
         let sum = 0;
         ABILITIES[group].forEach(a => sum += (state.dots.abil[a] || 0));
-        // Add custom abilities assigned to this group
         if (state.customAbilityCategories) {
             Object.entries(state.customAbilityCategories).forEach(([name, cat]) => {
                 if (cat === group) sum += (state.dots.abil[name] || 0);
@@ -197,6 +214,7 @@ export function checkStepComplete(step, state) {
         let vSum = 0; VIRTUES.forEach(v => vSum += (state.dots.virt[v] || 1) - 1);
         return dSum === 3 && bSum === 5 && vSum === 7;
     }
+    // Biographical/Supernatural steps are open-ended
     if (step === 5) return true;
     if (step === 6) return true;
     if (step === 7) return true;
@@ -218,63 +236,59 @@ export function getPool(state, attrName, abilName) {
 
 /**
  * Calculates XP Cost for upgrades based on REVISED EDITION Rules.
- * @param {number} currentRating - The dot value the character ALREADY has.
+ * Revised Core p. 124 Experience Chart:
+ * * @param {number} currentRating - The dot value the character ALREADY has.
  * @param {string} type - 'attr', 'abil', 'disc', 'virt', 'humanity', 'willpower', 'path'
  * @param {boolean} isClan - If the Discipline is in-clan
- * @param {boolean} isCaitiff - If the character is Clanless (all Discs cost x6)
+ * @param {boolean} isCaitiff - If the character is Caitiff (Discs cost x6)
  * @returns {number} The cost to buy the NEXT dot.
  */
 export function getXpCost(currentRating, type, isClan = false, isCaitiff = false) {
-    // REVISED EDITION Core Rulebook p. 124 Experience Chart
     const rating = parseInt(currentRating);
 
     switch(type) {
         case 'attr': 
-            // "Attribute... current rating x 4"
+            // Attribute: current rating x 4
             return rating * 4; 
             
         case 'abil': 
-            // "New Ability... 3"
+            // New Ability: 3 / Increase: current rating x 2
             if (rating === 0) return 3;
-            // "Ability... current rating x 2"
             return rating * 2;
             
         case 'disc': 
-            // "New Discipline... 10"
+            // New Discipline: 10
             if (rating === 0) return 10;
             
-            // "Caitiff... current rating x 6"
-            // (Note: Revised p. 124 sidebar doesn't give Caitiff a New Disc cost break, 
-            // but implies standard x6 multiplier. We keep 10 as base for 'New'.)
+            // Caitiff: current rating x 6
             if (isCaitiff) return rating * 6;
 
-            // "Clan Discipline... current rating x 5"
+            // Clan Discipline: current rating x 5
             if (isClan) return rating * 5;
             
-            // "Other Discipline... current rating x 7"
+            // Other Discipline: current rating x 7
             return rating * 7;
             
         case 'virt': 
-            // "Virtue... current rating x 2"
+            // Virtue: current rating x 2
             return rating * 2;
             
         case 'humanity': 
-            // "Humanity or Path... current rating x 2"
+            // Humanity or Path: current rating x 2
             return rating * 2;
             
         case 'willpower': 
-            // "Willpower... current rating"
+            // Willpower: current rating x 1
             return rating;
             
         case 'path':
-            // REVISED SPECIFIC: Secondary Path (Thaum/Necro)
-            // Revised p. 124: "Secondary Path... current rating x 4"
-            // New Path is typically 7.
+            // Secondary Path (Thaum/Necro) Revised p. 124
+            // New Path: 7 / Increase: current rating x 4
             if (rating === 0) return 7;
             return rating * 4;
 
         case 'back':
-            // Backgrounds typically x1 or disallowed in standard rules, but x1 for homebrew.
+            // Backgrounds: Homebrew standard (current rating x 1)
             return rating * 1; 
 
         default: return 0;
@@ -290,16 +304,12 @@ export function getGenerationDerivedStats(dots = 0) {
     const baseGen = 13;
     const currentGen = baseGen - dots; 
     
-    // Safety clamp
-    const effectiveGen = Math.max(8, Math.min(13, currentGen));
-    
-    // Look up in GEN_LIMITS from data.js
-    // Note: GEN_LIMITS keys are strings "13", "12" etc.
+    const effectiveGen = Math.max(4, Math.min(15, currentGen));
     const limits = GEN_LIMITS[effectiveGen.toString()] || { m: 10, pt: 1 };
 
     return {
         generation: effectiveGen,
-        maxBlood: limits.m || limits.maxBlood,
-        bpPerTurn: limits.pt || limits.bloodPerTurn
+        maxBlood: limits.m,
+        bpPerTurn: limits.pt
     };
 }
