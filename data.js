@@ -1,7 +1,7 @@
 // DATA CONSTANTS - REVISED EDITION
 // Source: Vampire: The Masquerade Revised Edition Core Rulebook
 
-export const APP_VERSION = "Revised v1.0.4";
+export const APP_VERSION = "Revised v1.0.5";
 
 export const CLANS = [
     "Assamite", "Brujah", "Followers of Set", "Gangrel", "Giovanni", 
@@ -21,7 +21,6 @@ export const ARCHETYPES = [
 ];
 
 export const ARCHETYPE_RULES = {
- // (Simplified rules based on Revised Core)
     "Architect": "Regain Willpower when you establish something of importance or lasting value.",
     "Autocrat": "Regain Willpower when you achieve control over a group or organization.",
     "Bon Vivant": "Regain Willpower when you truly enjoy yourself.",
@@ -70,14 +69,12 @@ export const ATTRIBUTES = {
 };
 
 // REVISED EDITION ABILITIES (p. 119)
-// Note: 'Dodge' replaces 'Athletics' for defense/Awareness. 'Security' replaces 'Larceny'. 'Linguistics' is a Knowledge.
 export const ABILITIES = {
     Talents: ["Alertness", "Athletics", "Brawl", "Dodge", "Empathy", "Expression", "Intimidation", "Leadership", "Streetwise", "Subterfuge"],
     Skills: ["Animal Ken", "Crafts", "Drive", "Etiquette", "Firearms", "Melee", "Performance", "Security", "Stealth", "Survival"],
     Knowledges: ["Academics", "Computer", "Finance", "Investigation", "Law", "Linguistics", "Medicine", "Occult", "Politics", "Science"]
 };
 
-// BROAD ABILITIES (For Specialty Warnings)
 export const BROAD_ABILITIES = ["Crafts", "Performance", "Science", "Academics"];
 
 export const DISCIPLINES = [
@@ -104,7 +101,6 @@ export const CLAN_DISCIPLINES = {
     "Caitiff": [] 
 };
 
-// Revised Core Backgrounds (p. 121)
 export const BACKGROUNDS = [
     "Allies", "Contacts", "Fame", "Generation", "Herd", 
     "Influence", "Mentor", "Resources", "Retainers", "Status"
@@ -118,7 +114,6 @@ export const VIT = [
     "Height", "Weight", "Sex"
 ];
 
-// Revised Derangements (p. 232)
 export const DERANGEMENTS = [
     "Multiple Personalities", "Schizophrenia", "Paranoia", 
     "Megalomania", "Bulimia", "Hysteria", "Manic-Depression", 
@@ -162,7 +157,6 @@ export const HEALTH_STATES = [
 ];
 
 export const SPECIALTY_EXAMPLES = {
-    // Attributes
     "Strength": ["Iron Grip", "Powerful Arms", "Reserves of Strength", "Fists Like Anvils"],
     "Dexterity": ["Lithe", "Swift", "Feline Grace", "Lightning Reflexes"],
     "Stamina": ["Tireless", "Determined", "Tough as Nails", "Resolute"],
@@ -172,8 +166,6 @@ export const SPECIALTY_EXAMPLES = {
     "Perception": ["Attentive", "Insightful", "Careful", "Discerning", "Experienced"],
     "Intelligence": ["Book Knowledge", "Creative", "Analytical", "Problem Solver", "Subject Authority"],
     "Wits": ["Getting the Jump on Others", "Snappy Patter", "Changes in Strategy", "Ambushes"],
-    
-    // Talents
     "Alertness": ["Noises", "Eavesdropping", "Ambushes", "Hidden Weapons", "Crowds", "Forests", "Animals"],
     "Athletics": ["Swimming", "Rock Climbing", "Acrobatics", "Dancing", "Endurance Running", "Sports"],
     "Brawl": ["Boxing", "Wrestling", "Dirty Fighting", "Kicks", "Karate", "Judo", "Muay Thai", "Throws", "Submission Holds"],
@@ -184,8 +176,6 @@ export const SPECIALTY_EXAMPLES = {
     "Leadership": ["Oratory", "Compelling", "Friendly", "Open", "Noble", "Military", "Commands"],
     "Streetwise": ["Fencing", "Illegal Drugs", "Illegal Weapons", "Rumors", "Gangs", "Pickpocketing", "Local Slang"],
     "Subterfuge": ["Seduction", "Impeccable Lies", "Feigning Mortality"],
-    
-    // Skills
     "Animal Ken": ["Dogs", "Attack Training", "Big Cats", "Horses", "Farm Animals", "Falconry"],
     "Crafts": ["Pottery", "Sewing", "Home Repair", "Carpentry", "Appraisal", "Carburetors"],
     "Drive": ["Off-road", "Wheelies", "Curves", "Stick Shift", "Sudden Stops", "Heavy Traffic"],
@@ -195,8 +185,6 @@ export const SPECIALTY_EXAMPLES = {
     "Performance": ["Dancing", "Singing", "Rock and Roll", "Acting", "Guitar Solos", "Drunken Karaoke"],
     "Security": ["Safe-cracking", "Hot-wiring", "Electrical Alarms", "Pressure Plates", "Deadbolts", "Cars"],
     "Stealth": ["Hiding", "Silent Movement", "Shadowing", "Crowds"],
-    
-    // Knowledges
     "Survival": ["Tracking", "Woodlands", "Jungle", "Trapping", "Hunting"],
     "Academics": ["Poststructuralism", "Impressionist Painting", "Imperial Rome", "American Realism"],
     "Computer": ["Computer Languages", "Internet", "Codebreaking", "Viruses", "Data Retrieval"],
@@ -210,30 +198,179 @@ export const SPECIALTY_EXAMPLES = {
     "Science": ["Chemistry", "Biology", "Geology", "Physics", "Astronomy"]
 };
 
-// Revised Merits & Flaws (Core Book p. 296+)
+// --- REVISED MERITS (Core Book p. 296+) ---
 export const V20_MERITS_LIST = [
-    { n: "Acute Sense", v: 1 }, { n: "Ambidextrous", v: 1 }, { n: "Eat Food", v: 1 }, { n: "Catlike Balance", v: 1 },
-    { n: "Blush of Health", v: 2 }, { n: "Enchanting Voice", v: 2 }, { n: "Daredevil", v: 3 }, { n: "Efficient Digestion", v: 3 },
-    { n: "Huge Size", v: 4 }, { n: "Common Sense", v: 1 }, { n: "Concentration", v: 1 }, { n: "Time Sense", v: 1 },
-    { n: "Code of Honor", v: 2 }, { n: "Eidetic Memory", v: 2 }, { n: "Light Sleeper", v: 2 }, { n: "Natural Linguist", v: 2 },
-    { n: "Calm Heart", v: 3 }, { n: "Iron Will", v: 3 }, { n: "Prestigious Sire", v: 1 }, { n: "Natural Leader", v: 1 },
-    { n: "Debt of Gratitude", v: 1, variable: true, range: "1-3" }, { n: "True Love", v: 4 }, { n: "Medium", v: 2 },
-    { n: "Magic Resistance", v: 2 }, { n: "Oracular Ability", v: 3 }, { n: "Spirit Mentor", v: 3 }, { n: "Unbondable", v: 3 },
-    { n: "Luck", v: 3 }, { n: "True Faith", v: 7 }
+    { n: "Acute Sense", v: 1 },
+    { n: "Ambidextrous", v: 1 },
+    { n: "Bruiser", v: 1 },
+    { n: "Catlike Balance", v: 1 },
+    { n: "Early Riser", v: 1 },
+    { n: "Eat Food", v: 1 },
+    { n: "Friendly Face", v: 1 },
+    { n: "Coldly Logical", v: 1 },
+    { n: "Common Sense", v: 1 },
+    { n: "Concentration", v: 1 },
+    { n: "Introspection", v: 1 },
+    { n: "Language", v: 1 },
+    { n: "Time Sense", v: 1 },
+    { n: "Useful Knowledge", v: 1 },
+    { n: "Elysium Regular", v: 1 },
+    { n: "Former Ghoul", v: 1 },
+    { n: "Harmless", v: 1 },
+    { n: "Natural Leader", v: 1 },
+    { n: "Prestigious Sire", v: 1 },
+    { n: "Protégé", v: 1 },
+    { n: "Rep", v: 1 },
+    { n: "Sabbat Survivor", v: 1 },
+    { n: "Deceptive Aura", v: 1 },
+    { n: "Healing Touch", v: 1 },
+    { n: "Inoffensive to Animals", v: 1 },
+    { n: "Boon", v: 1, variable: true, range: "1-6" }, // Revised: 1-6 pt
+    { n: "Blush of Health", v: 2 },
+    { n: "Enchanting Voice", v: 2 },
+    { n: "Code of Honor", v: 2 },
+    { n: "Computer Aptitude", v: 2 },
+    { n: "Eidetic Memory", v: 2 },
+    { n: "Light Sleeper", v: 2 },
+    { n: "Natural Linguist", v: 2 },
+    { n: "Bullyboy", v: 2 },
+    { n: "Lawman's Friend", v: 2 },
+    { n: "Old Pal", v: 2 },
+    { n: "Open Road", v: 2 },
+    { n: "Sanctity", v: 2 },
+    { n: "Scholar of Enemies", v: 2 },
+    { n: "Scholar of Others", v: 2 },
+    { n: "Magic Resistance", v: 2 },
+    { n: "Medium", v: 2 },
+    { n: "Daredevil", v: 3 },
+    { n: "Efficient Digestion", v: 3 },
+    { n: "Calm Heart", v: 3 },
+    { n: "Iron Will", v: 3 },
+    { n: "Precocious", v: 3 },
+    { n: "Friend of the Underground", v: 3 },
+    { n: "Mole", v: 3 },
+    { n: "Rising Star", v: 3 },
+    { n: "Hidden Diablerie", v: 3 },
+    { n: "Lucky", v: 3 },
+    { n: "Oracular Ability", v: 3 },
+    { n: "Spirit Mentor", v: 3 },
+    { n: "Huge Size", v: 4 },
+    { n: "Broken Bond", v: 4 },
+    { n: "Clan Friendship", v: 4 },
+    { n: "Primogen/Bishop Friendship", v: 4 },
+    { n: "True Love", v: 4 },
+    { n: "Additional Discipline", v: 5 },
+    { n: "Unbondable", v: 5 },
+    { n: "Nine Lives", v: 6 },
+    { n: "True Faith", v: 7 }
 ].sort((a, b) => a.n.localeCompare(b.n));
 
+// --- REVISED FLAWS (Core Book p. 296+) ---
 export const V20_FLAWS_LIST = [
-    { n: "Hard of Hearing", v: 1 }, { n: "Short", v: 1 }, { n: "Smell of the Grave", v: 1 }, { n: "Bad Sight", v: 2 },
-    { n: "One Eye", v: 2 }, { n: "Disfigured", v: 2 }, { n: "Deformity", v: 3 }, { n: "Lame", v: 3 }, { n: "Monstrous", v: 3 },
-    { n: "Permanent Wound", v: 3 }, { n: "Slow Healing", v: 3 }, { n: "Deaf", v: 4 }, { n: "Mute", v: 4 }, { n: "Thin Blood", v: 4 },
-    { n: "Flesh of the Corpse", v: 5 }, { n: "Blind", v: 6 }, { n: "Deep Sleeper", v: 1 }, { n: "Nightmares", v: 1 }, { n: "Phobia", v: 2 },
-    { n: "Shy", v: 1 }, { n: "Soft-Hearted", v: 1 }, { n: "Speech Impediment", v: 1 }, { n: "Short Fuse", v: 2 }, { n: "Territorial", v: 2 },
-    { n: "Vengeful", v: 2 }, { n: "Amnesia", v: 2 }, { n: "Lunacy", v: 2 }, { n: "Weak-Willed", v: 3 }, { n: "Conspicuous Consumption", v: 4 },
-    { n: "Dark Secret", v: 1 }, { n: "Infamous Sire", v: 1 }, { n: "Mistaken Identity", v: 1 }, { n: "Sire's Resentment", v: 1 },
-    { n: "Enemy", v: 1, variable: true, range: "1-5" }, { n: "Hunted", v: 4 }, { n: "Probationary Sect Member", v: 4 },
-    { n: "Cast No Reflection", v: 1 }, { n: "Repulsed by Garlic", v: 1 }, { n: "Touch of Frost", v: 1 }, { n: "Cursed", v: 1, variable: true, range: "1-5" },
-    { n: "Beacon of the Unholy", v: 2 }, { n: "Eerie Presence", v: 2 }, { n: "Haunted", v: 3 }, { n: "Repelled by Crosses", v: 3 },
-    { n: "Grip of the Damned", v: 4 }, { n: "Dark Fate", v: 5 }, { n: "Light-Sensitive", v: 5 }
+    { n: "Hard of Hearing", v: 1 },
+    { n: "Short", v: 1 },
+    { n: "Smell of the Grave", v: 1 },
+    { n: "Tic/Twitch", v: 1 },
+    { n: "Deep Sleeper", v: 1 },
+    { n: "Impatient", v: 1 },
+    { n: "Nightmares", v: 1 },
+    { n: "Prey Exclusion", v: 1 },
+    { n: "Shy", v: 1 },
+    { n: "Soft-Hearted", v: 1 },
+    { n: "Speech Impediment", v: 1 },
+    { n: "Unconvinced", v: 1 },
+    { n: "Botched Presentation", v: 1 },
+    { n: "Dark Secret", v: 1 },
+    { n: "Expendable", v: 1 },
+    { n: "Incomplete Understanding", v: 1 },
+    { n: "Infamous Sire", v: 1 },
+    { n: "Mistaken Identity", v: 1 },
+    { n: "New Arrival", v: 1 },
+    { n: "New Kid", v: 1 },
+    { n: "Recruitment Target", v: 1 },
+    { n: "Sire's Resentment", v: 1 },
+    { n: "Special Responsibility", v: 1 },
+    { n: "Sympathizer", v: 1 },
+    { n: "Cast No Reflection", v: 1 },
+    { n: "Cold Breeze", v: 1 },
+    { n: "Repulsed by Garlic", v: 1 },
+    { n: "Touch of Frost", v: 1 },
+    { n: "Enemy", v: 1, variable: true, range: "1-5" },
+    { n: "Cursed", v: 1, variable: true, range: "1-5" },
+    { n: "Bad Sight", v: 1, desc: "Correctable (1pt)" }, // 1 or 3
+    { n: "Bad Sight (Blind)", v: 3, desc: "Uncorrectable (3pt)" },
+    { n: "14th Generation", v: 2 },
+    { n: "Disfigured", v: 2 },
+    { n: "Dulled Bite", v: 2 },
+    { n: "Infectious Bite", v: 2 },
+    { n: "One Eye", v: 2 },
+    { n: "Vulnerability to Silver", v: 2 },
+    { n: "Open Wound", v: 2, desc: "2pt Version" },
+    { n: "Open Wound (Severe)", v: 4, desc: "4pt Version" },
+    { n: "Amnesia", v: 2 },
+    { n: "Lunacy", v: 2 },
+    { n: "Phobia", v: 2 },
+    { n: "Short Fuse", v: 2 },
+    { n: "Stereotype", v: 2 },
+    { n: "Territorial", v: 2 },
+    { n: "Thirst for Innocence", v: 2 },
+    { n: "Vengeful", v: 2 },
+    { n: "Victim of the Masquerade", v: 2 },
+    { n: "Bound", v: 2 },
+    { n: "Catspaw", v: 2 },
+    { n: "Escaped Target", v: 2 },
+    { n: "Failure", v: 2 },
+    { n: "Masquerade Breaker", v: 2 },
+    { n: "Old Flame", v: 2 },
+    { n: "Rival Sires", v: 2 },
+    { n: "Uppity", v: 2 },
+    { n: "Beacon of the Unholy", v: 2 },
+    { n: "Deathsight", v: 2 },
+    { n: "Eerie Presence", v: 2 },
+    { n: "Lord of the Flies", v: 2 },
+    { n: "Addiction", v: 3 },
+    { n: "Child", v: 3 },
+    { n: "Deformity", v: 3 },
+    { n: "Glowing Eyes", v: 3 },
+    { n: "Lame", v: 3 },
+    { n: "Lazy", v: 3 },
+    { n: "Monstrous", v: 3 },
+    { n: "Permanent Fangs", v: 3 },
+    { n: "Permanent Wound", v: 3 },
+    { n: "Slow Healing", v: 3 },
+    { n: "Calm Heart", v: 3 },
+    { n: "Iron Will", v: 3 },
+    { n: "Weak-Willed", v: 3 },
+    { n: "Disgrace to the Blood", v: 3 },
+    { n: "Former Prince", v: 3 },
+    { n: "Hunted Like a Dog", v: 3 },
+    { n: "Narc", v: 3 },
+    { n: "Sleeping With the Enemy", v: 3 },
+    { n: "Can't Cross Running Water", v: 3 },
+    { n: "Haunted", v: 3 },
+    { n: "Repelled by Crosses", v: 3 },
+    { n: "Deaf", v: 4 },
+    { n: "Disease Carrier", v: 4 },
+    { n: "Mute", v: 4 },
+    { n: "Thin Blood", v: 4 },
+    { n: "15th Generation", v: 4 },
+    { n: "Conspicuous Consumption", v: 4 },
+    { n: "Guilt-Wracked", v: 4 },
+    { n: "Blood Hunted", v: 4, desc: "Local (4pt)" },
+    { n: "Blood Hunted (Global)", v: 6, desc: "Global (6pt)" },
+    { n: "Clan Enmity", v: 4 },
+    { n: "Hunted", v: 4 },
+    { n: "Loathsome Regnant", v: 4 },
+    { n: "Overextended", v: 4 },
+    { n: "Probationary Sect Member", v: 4 },
+    { n: "Grip of the Damned", v: 4 },
+    { n: "Flesh of the Corpse", v: 5 },
+    { n: "Infertile Vitae", v: 5 },
+    { n: "Laughingstock", v: 5 },
+    { n: "Dark Fate", v: 5 },
+    { n: "Light-Sensitive", v: 5 },
+    { n: "Blind", v: 6 },
+    { n: "Red List", v: 7 }
 ].sort((a, b) => a.n.localeCompare(b.n));
 
 // --- REVISED EDITION VEHICLES ---
