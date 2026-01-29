@@ -190,7 +190,7 @@ export function applyPlayModeUI() {
             'custom-weakness-input', 'xp-points-input', 'blood-per-turn-input', 
             'custom-dice-input', 'spend-willpower', 'c-xp-total', 
             'frenzy-diff', 'rotschreck-diff', 'play-merit-notes', 'dmg-input-val', 
-            'tray-use-armor', 'potence-toggle', 'setite-sunlight-toggle', 
+            'tray-use-armor', 'setite-sunlight-toggle', 
             'setite-light-toggle', 'tzimisce-soil-days',
             // Journal Inputs
             'log-sess-num', 'log-date', 'log-game-date', 'log-title', 'log-effects', 
