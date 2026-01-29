@@ -1,7 +1,7 @@
 // DATA CONSTANTS - REVISED EDITION
 // Source: Vampire: The Masquerade Revised Edition Core Rulebook
 
-export const APP_VERSION = "Revised v1.0.0";
+export const APP_VERSION = "Revised v1.0.2";
 
 export const CLANS = [
     "Assamite", "Brujah", "Followers of Set", "Gangrel", "Giovanni", 
@@ -162,45 +162,52 @@ export const HEALTH_STATES = [
 ];
 
 export const SPECIALTY_EXAMPLES = {
-    "Strength": ["Dead Lift", "Punch", "Jump", "Crush"],
-    "Dexterity": ["Sprint", "Parry", "Sneak", "Throw"],
-    "Stamina": ["Endurance", "Forced March", "Hold Breath"],
-    "Charisma": ["Oratory", "Seduction", "Instruction"],
-    "Manipulation": ["Persuasion", "Subterfuge", "Command"],
-    "Appearance": ["Dignified", "Exotic", "Sexy", "Intimidating"],
-    "Perception": ["Hearing", "Sight", "Insight", "Alertness"],
-    "Intelligence": ["Research", "Memory", "Analysis"],
-    "Wits": ["Reaction", "Ambush", "Repartee"],
-    "Alertness": ["Noises", "Traps", "Ambushes"],
-    "Athletics": ["Swimming", "Climbing", "Running"],
-    "Brawl": ["Boxing", "Wrestling", "Karate"],
-    "Dodge": ["Sidestep", "Duck", "Dive", "Cover"],
-    "Empathy": ["Emotions", "Truths", "Motives"],
-    "Expression": ["Poetry", "Acting", "Writing"],
-    "Intimidation": ["Physical", "Veiled Threats", "Blackmail"],
-    "Leadership": ["Military", "Political", "Oratory"],
-    "Streetwise": ["Fencing", "Drugs", "Gangs", "Rumors"],
-    "Subterfuge": ["Lying", "Seduction", "Impeccable Logic"],
-    "Animal Ken": ["Dogs", "Horses", "Training"],
-    "Crafts": ["Carpentry", "Mechanics", "Sewing"],
-    "Drive": ["Race Car", "Motorcycle", "Evasion"],
-    "Etiquette": ["High Society", "Business", "Street"],
-    "Firearms": ["Pistols", "Rifles", "Shotguns"],
-    "Melee": ["Knives", "Swords", "Clubs"],
-    "Performance": ["Singing", "Dancing", "Acting"],
-    "Security": ["Lockpicking", "Safe-cracking", "Hotwiring"],
-    "Stealth": ["Hiding", "Moving Silently", "Shadowing"],
-    "Survival": ["Tracking", "Foraging", "Shelter"],
-    "Academics": ["History", "Literature", "Philosophy"],
-    "Computer": ["Hacking", "Programming", "Research"],
-    "Finance": ["Stock Market", "Money Laundering", "Appraisal"],
-    "Investigation": ["Forensics", "Search", "Shadowing"],
-    "Law": ["Criminal", "Civil", "Police Procedure"],
-    "Linguistics": ["Spanish", "French", "Latin", "Mandarin"],
-    "Medicine": ["First Aid", "Surgery", "Toxicology"],
-    "Occult": ["Kindred Lore", "Rituals", "Ghosts"],
-    "Politics": ["City", "National", "Camarilla"],
-    "Science": ["Biology", "Chemistry", "Physics"]
+    // Attributes
+    "Strength": ["Iron Grip", "Powerful Arms", "Reserves of Strength", "Fists Like Anvils"],
+    "Dexterity": ["Lithe", "Swift", "Feline Grace", "Lightning Reflexes"],
+    "Stamina": ["Tireless", "Determined", "Tough as Nails", "Resolute"],
+    "Charisma": ["Smooth Talker", "Genteel", "Urbane", "Witty", "Eloquent Speaker", "Graceful"],
+    "Manipulation": ["Persuasive", "Damn I'm Smooth", "Seductive", "Well-Reasoned"],
+    "Appearance": ["Boldness", "Dignity", "Pleasant Expression", "Sex Appeal", "Intimidating"], 
+    "Perception": ["Attentive", "Insightful", "Careful", "Discerning", "Experienced"],
+    "Intelligence": ["Book Knowledge", "Creative", "Analytical", "Problem Solver", "Subject Authority"],
+    "Wits": ["Getting the Jump on Others", "Snappy Patter", "Changes in Strategy", "Ambushes"],
+
+    // Talents
+    "Alertness": ["Noises", "Eavesdropping", "Ambushes", "Hidden Weapons", "Crowds", "Forests", "Animals"],
+    "Athletics": ["Swimming", "Rock Climbing", "Acrobatics", "Dancing", "Endurance Running", "Sports"],
+    "Brawl": ["Boxing", "Wrestling", "Dirty Fighting", "Kicks", "Karate", "Judo", "Muay Thai", "Throws", "Submission Holds"],
+    "Dodge": ["Cover", "Sidestep", "Footwork", "Leap"],
+    "Empathy": ["Emotions", "Personalities", "Motives", "Gaining Trust"],
+    "Expression": ["Acting", "Poetry", "Fiction", "Impromptu", "Conversation"],
+    "Intimidation": ["Veiled Threats", "Pulling Rank", "Physical Coercion", "Blackmail"],
+    "Leadership": ["Oratory", "Compelling", "Friendly", "Open", "Noble", "Military", "Commands"],
+    "Streetwise": ["Fencing", "Illegal Drugs", "Illegal Weapons", "Rumors", "Gangs", "Pickpocketing", "Local Slang"],
+    "Subterfuge": ["Seduction", "Impeccable Lies", "Feigning Mortality"],
+
+    // Skills
+    "Animal Ken": ["Dogs", "Attack Training", "Big Cats", "Horses", "Farm Animals", "Falconry"],
+    "Crafts": ["Pottery", "Sewing", "Home Repair", "Carpentry", "Appraisal", "Carburetors"],
+    "Drive": ["Off-road", "Wheelies", "Curves", "Stick Shift", "Sudden Stops", "Heavy Traffic"],
+    "Etiquette": ["Formal Dinners", "Business", "Street Culture", "Kindred Society"],
+    "Firearms": ["Fast-Draw", "Gunsmithing", "Pistols", "Sniping", "Revolvers", "Shotguns"],
+    "Melee": ["Knives", "Swords", "Improvised Clubs", "Stakes", "Disarms", "Axes"],
+    "Performance": ["Dancing", "Singing", "Rock and Roll", "Acting", "Guitar Solos", "Drunken Karaoke"],
+    "Security": ["Safe-cracking", "Hot-wiring", "Electrical Alarms", "Pressure Plates", "Deadbolts", "Cars"],
+    "Stealth": ["Hiding", "Silent Movement", "Shadowing", "Crowds"],
+    "Survival": ["Tracking", "Woodlands", "Jungle", "Trapping", "Hunting"],
+
+    // Knowledges
+    "Academics": ["Poststructuralism", "Impressionist Painting", "Imperial Rome", "American Realism"],
+    "Computer": ["Computer Languages", "Internet", "Codebreaking", "Viruses", "Data Retrieval"],
+    "Finance": ["Stock Market", "Laundering", "Appraisal", "Foreign Currencies", "Accounting", "Fencing", "Corporations"],
+    "Investigation": ["Forensics", "Shadowing", "Search", "Discolorations"],
+    "Law": ["Criminal", "Suits", "Courts", "Contracts", "Police Procedure"],
+    "Linguistics": ["Romance Languages", "Kanji", "Idioms", "Hieroglyphics", "Written Expression", "Ciphers"],
+    "Medicine": ["Organ Transplants", "Emergency Care", "Poison Treatments", "Pathology", "Pharmaceuticals"],
+    "Occult": ["Kindred Lore", "Rituals", "Infernalism", "Witches"],
+    "Politics": ["City", "State", "Federal", "Bribery", "Dogma", "Radical"],
+    "Science": ["Chemistry", "Biology", "Geology", "Physics", "Astronomy"]
 };
 
 // Revised Merits & Flaws (Core Book p. 296+)
