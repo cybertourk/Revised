@@ -30,10 +30,10 @@ export const DISCIPLINES_DATA = {
         3: {
             name: "Quell the Beast",
             desc: "Cow a mortal or beast into apathy, or soothe a frenzying vampire.",
-            system: "Roll Manipulation + Intimidation vs Target Willpower (Diff 7). Mortal cannot act/spend Willpower. Vampire: Resisted roll to stop Frenzy.",
+            system: "Roll Manipulation + Intimidation (Diff 7) for mortals. Roll Manipulation + Empathy (Diff 8) for vampires.",
             roll: {
                 pool: ["Manipulation", "Intimidation"],
-                diffLabel: "Resisted (Target WP)",
+                diffLabel: "Diff 7 / 8",
                 defaultDiff: 7
             }
         },
@@ -50,9 +50,9 @@ export const DISCIPLINES_DATA = {
         5: {
             name: "Drawing Out the Beast",
             desc: "Transfer your Beast (and Frenzy) into another.",
-            system: "Roll Manipulation + Empathy (Diff 8). Target must succeed on Self-Control/Instinct roll (Diff 7) or Frenzy.",
+            system: "Roll Manipulation + Self-Control (Diff 8). Target enters frenzy if successful.",
             roll: {
-                pool: ["Manipulation", "Empathy"],
+                pool: ["Manipulation", "Self-Control"],
                 diffLabel: "Difficulty 8",
                 defaultDiff: 8
             }
@@ -110,31 +110,31 @@ export const DISCIPLINES_DATA = {
         1: {
             name: "Celerity",
             desc: "Move with supernatural speed.",
-            system: "Spend 1 Blood Point to gain 1 extra action next turn. You may spend blood points up to your Celerity rating for multiple actions.",
+            system: "Spend 1 Blood Point to gain 1 extra full action next turn.",
             roll: null
         },
         2: {
             name: "Celerity",
             desc: "Move with supernatural speed.",
-            system: "Spend up to 2 Blood Points for 2 extra actions.",
+            system: "Spend 1 Blood Point to gain 2 extra full actions next turn.",
             roll: null
         },
         3: {
             name: "Celerity",
             desc: "Move with supernatural speed.",
-            system: "Spend up to 3 Blood Points for 3 extra actions.",
+            system: "Spend 1 Blood Point to gain 3 extra full actions next turn.",
             roll: null
         },
         4: {
             name: "Celerity",
             desc: "Move with supernatural speed.",
-            system: "Spend up to 4 Blood Points for 4 extra actions.",
+            system: "Spend 1 Blood Point to gain 4 extra full actions next turn.",
             roll: null
         },
         5: {
             name: "Celerity",
             desc: "Move with supernatural speed.",
-            system: "Spend up to 5 Blood Points for 5 extra actions.",
+            system: "Spend 1 Blood Point to gain 5 extra full actions next turn.",
             roll: null
         }
     },
@@ -208,7 +208,7 @@ export const DISCIPLINES_DATA = {
         4: {
             name: "Voice of Madness",
             desc: "Trigger frenzy in victim.",
-            system: "Roll Manipulation + Empathy (Diff 7). Target must roll Self-Control/Instinct (Diff 7) or Frenzy.",
+            system: "Spend 1 BP. Roll Manipulation + Empathy (Diff 7). Target drives into frenzy or flight.",
             roll: {
                 pool: ["Manipulation", "Empathy"],
                 diffLabel: "Difficulty 7",
@@ -406,31 +406,31 @@ export const DISCIPLINES_DATA = {
         1: {
             name: "Potence",
             desc: "Supernatural strength.",
-            system: "Passive: +1 die to Strength rolls. Active: Spend 1 BP to turn Potence dice into Automatic Successes for the turn.",
+            system: "Passive: +1 Auto Success to Strength rolls. Active: Spend 1 BP to add Potence dice to Damage.",
             roll: null
         },
         2: {
             name: "Potence",
             desc: "Supernatural strength.",
-            system: "Passive: +2 dice to Strength rolls. Active: Spend 1 BP to turn Potence dice into Automatic Successes for the turn.",
+            system: "Passive: +2 Auto Successes to Strength rolls. Active: Spend 1 BP to add Potence dice to Damage.",
             roll: null
         },
         3: {
             name: "Potence",
             desc: "Supernatural strength.",
-            system: "Passive: +3 dice to Strength rolls. Active: Spend 1 BP to turn Potence dice into Automatic Successes for the turn.",
+            system: "Passive: +3 Auto Successes to Strength rolls. Active: Spend 1 BP to add Potence dice to Damage.",
             roll: null
         },
         4: {
             name: "Potence",
             desc: "Supernatural strength.",
-            system: "Passive: +4 dice to Strength rolls. Active: Spend 1 BP to turn Potence dice into Automatic Successes for the turn.",
+            system: "Passive: +4 Auto Successes to Strength rolls. Active: Spend 1 BP to add Potence dice to Damage.",
             roll: null
         },
         5: {
             name: "Potence",
             desc: "Supernatural strength.",
-            system: "Passive: +5 dice to Strength rolls. Active: Spend 1 BP to turn Potence dice into Automatic Successes for the turn.",
+            system: "Passive: +5 Auto Successes to Strength rolls. Active: Spend 1 BP to add Potence dice to Damage.",
             roll: null
         }
     },
@@ -478,11 +478,11 @@ export const DISCIPLINES_DATA = {
         5: {
             name: "Majesty",
             desc: "Assume godlike aura.",
-            system: "Spend 1 Willpower. No roll. Attackers must roll Courage (Diff = Charisma + Intimidation).",
+            system: "Spend 1 Willpower. No roll. Attackers must roll Courage (Diff 8).",
             roll: {
-                pool: ["Charisma", "Intimidation"],
-                diffLabel: "Attacker's Diff",
-                defaultDiff: 6
+                pool: ["Courage"],
+                diffLabel: "Attacker's Diff (8)",
+                defaultDiff: 8
             }
         }
     },
@@ -521,14 +521,14 @@ export const DISCIPLINES_DATA = {
     "Quietus": {
         1: {
             name: "Silence of Death",
-            desc: "15ft zone of silence.",
+            desc: "20ft zone of silence.",
             system: "Spend 1 BP. Lasts 1 hour.",
             roll: null
         },
         2: {
             name: "Scorpion's Touch",
             desc: "Reduce target Stamina.",
-            system: "Spend BP. Roll Willpower (Diff 6). Touch attack. Target loses Stamina = successes.",
+            system: "Spend Blood (to coat weapon). Roll Willpower (Diff 6). Target loses Stamina = successes.",
             roll: {
                 pool: ["Willpower"],
                 diffLabel: "Difficulty 6",
@@ -537,8 +537,8 @@ export const DISCIPLINES_DATA = {
         },
         3: {
             name: "Dagon's Call",
-            desc: "Drown target in their own blood.",
-            system: "Spend 1 BP. Resisted Stamina vs Stamina. Net successes = Lethal damage.",
+            desc: "Rupture internal organs.",
+            system: "Spend 1 Willpower. Contested Stamina vs Stamina. Net successes = Lethal damage.",
             roll: {
                 pool: ["Stamina"],
                 diffLabel: "Target Stamina",
@@ -554,9 +554,9 @@ export const DISCIPLINES_DATA = {
         5: {
             name: "Taste of Death",
             desc: "Spit blood for Aggravated damage.",
-            system: "Spend BP. Roll Dex + Firearms (Diff 6). Dmg = 2 Agg per BP spent.",
+            system: "Spend BP. Roll Dexterity + Athletics (Diff 6). Dmg = 2 Agg per BP spent.",
             roll: {
-                pool: ["Dexterity", "Firearms"],
+                pool: ["Dexterity", "Athletics"],
                 diffLabel: "Difficulty 6",
                 defaultDiff: 6
             }
@@ -566,7 +566,7 @@ export const DISCIPLINES_DATA = {
         1: {
             name: "Eyes of the Serpent",
             desc: "Paralyze victim with gaze.",
-            system: "Roll Willpower (Diff = Target Willpower).",
+            system: "Roll Willpower (Diff = Target Willpower). Victim needs Diff 9 to break.",
             roll: {
                 pool: ["Willpower"],
                 diffLabel: "Target Willpower",
@@ -602,9 +602,9 @@ export const DISCIPLINES_DATA = {
         1: {
             name: "Malleable Visage",
             desc: "Alter own appearance.",
-            system: "Spend 1 BP. Roll Int + Medicine (Diff 6).",
+            system: "Spend 1 BP. Roll Intelligence + Body Crafts (Diff 6).",
             roll: {
-                pool: ["Intelligence", "Medicine"],
+                pool: ["Intelligence", "Body Crafts"],
                 diffLabel: "Difficulty 6",
                 defaultDiff: 6
             }
@@ -612,9 +612,9 @@ export const DISCIPLINES_DATA = {
         2: {
             name: "Fleshcraft",
             desc: "Alter others' flesh.",
-            system: "Spend 1 BP. Roll Dex + Medicine (Diff variable).",
+            system: "Spend 1 BP. Roll Dexterity + Body Crafts (Diff variable).",
             roll: {
-                pool: ["Dexterity", "Medicine"],
+                pool: ["Dexterity", "Body Crafts"],
                 diffLabel: "Diff Varies",
                 defaultDiff: 6
             }
@@ -622,9 +622,9 @@ export const DISCIPLINES_DATA = {
         3: {
             name: "Bonecraft",
             desc: "Alter others' bone.",
-            system: "Spend 1 BP. Roll Str + Medicine (Diff 7).",
+            system: "Spend 1 BP. Roll Strength + Body Crafts (Diff 7).",
             roll: {
-                pool: ["Strength", "Medicine"],
+                pool: ["Strength", "Body Crafts"],
                 diffLabel: "Difficulty 7",
                 defaultDiff: 7
             }
@@ -632,7 +632,7 @@ export const DISCIPLINES_DATA = {
         4: {
             name: "Horrid Form",
             desc: "Battle form (+3 Phys stats).",
-            system: "Spend 2 BP. 1 turn.",
+            system: "Spend 2 BP. 1 turn. Social traits = 0.",
             roll: null
         },
         5: {
