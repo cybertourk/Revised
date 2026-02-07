@@ -2,6 +2,8 @@ import {
     ATTRIBUTES, ABILITIES, VIRTUES 
 } from "./data.js";
 
+import { DISCIPLINES_DATA } from "./disciplines-data.js";
+
 import { 
     renderDots 
 } from "./ui-common.js";
@@ -13,6 +15,23 @@ export function renderPrintSheet() {
     
     // Refresh Movement if available (Play Mode dependency, safe check)
     if (window.renderMovementSection && window.state.isPlayMode) window.renderMovementSection();
+
+    // 0. CHARACTER IMAGE (New)
+    const imgContainer = document.getElementById('pr-img-container');
+    if (imgContainer) {
+        if (window.state.characterImage) {
+            let src = window.state.characterImage;
+            // Handle Google Drive conversion if needed
+            if (window.convertGoogleDriveLink) src = window.convertGoogleDriveLink(src);
+            
+            imgContainer.innerHTML = `<img src="${src}" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); opacity: 0.8;">`;
+            imgContainer.style.display = 'block';
+            imgContainer.style.border = '2px solid black';
+        } else {
+            imgContainer.innerHTML = '';
+            imgContainer.style.display = 'none';
+        }
+    }
 
     // 1. Header Fields
     const map = {
@@ -86,23 +105,59 @@ export function renderPrintSheet() {
         }
     });
 
-    // 4. Advantages (Disciplines, Backgrounds)
-    const renderAdvSection = (src, destId, max = 5) => {
-        const container = document.getElementById(destId);
-        if (container) {
-            container.innerHTML = '';
-            Object.entries(src).forEach(([name, val]) => {
-                if(val > 0) { // Only print dots > 0
-                    const row = document.createElement('div');
-                    row.className = "flex justify-between border-b border-black text-xs mb-1";
-                    row.innerHTML = `<span class="font-bold uppercase">${name}</span><span>${renderDots(val, max)}</span>`;
-                    container.appendChild(row);
+    // 4. Advantages (Disciplines with Detailed Powers)
+    const discDest = document.getElementById('pr-disc-list');
+    if (discDest) {
+        discDest.innerHTML = '';
+        Object.entries(window.state.dots.disc || {}).forEach(([name, val]) => {
+            if(val > 0) {
+                // Basic Dot Row
+                const row = document.createElement('div');
+                row.className = "flex justify-between border-b border-black text-xs mb-1 font-bold";
+                row.innerHTML = `<span class="uppercase">${name}</span><span>${renderDots(val, 5)}</span>`;
+                discDest.appendChild(row);
+
+                // Detailed Power List (New)
+                let powerNames = [];
+                // Normalize Name for lookup
+                let key = name;
+                if (!DISCIPLINES_DATA[key]) {
+                    // Try case insensitive find
+                    const match = Object.keys(DISCIPLINES_DATA).find(k => k.toLowerCase() === name.toLowerCase());
+                    if (match) key = match;
                 }
-            });
-        }
-    };
-    renderAdvSection(window.state.dots.disc, 'pr-disc-list');
-    renderAdvSection(window.state.dots.back, 'pr-back-list');
+
+                if (DISCIPLINES_DATA[key]) {
+                    for(let i=1; i<=val; i++) {
+                        if (DISCIPLINES_DATA[key][i]) {
+                            powerNames.push(DISCIPLINES_DATA[key][i].name);
+                        }
+                    }
+                }
+                
+                if (powerNames.length > 0) {
+                    const detailRow = document.createElement('div');
+                    detailRow.className = "text-[9px] italic text-gray-700 mb-2 pl-2 leading-tight";
+                    detailRow.innerText = powerNames.join(', ');
+                    discDest.appendChild(detailRow);
+                }
+            }
+        });
+    }
+
+    // Backgrounds
+    const backDest = document.getElementById('pr-back-list');
+    if (backDest) {
+        backDest.innerHTML = '';
+        Object.entries(window.state.dots.back || {}).forEach(([name, val]) => {
+            if(val > 0) {
+                const row = document.createElement('div');
+                row.className = "flex justify-between border-b border-black text-xs mb-1";
+                row.innerHTML = `<span class="font-bold uppercase">${name}</span><span>${renderDots(val, 5)}</span>`;
+                backDest.appendChild(row);
+            }
+        });
+    }
 
     // Virtues
     const vCont = document.getElementById('pr-virt-list');
@@ -124,7 +179,7 @@ export function renderPrintSheet() {
         
         const renderItem = (item, type) => {
             const div = document.createElement('div');
-            div.className = "mb-1";
+            div.className = "mb-1 text-xs";
             // Format: Name (Val pt Type): Description
             const header = document.createElement('span');
             header.className = "font-bold";
@@ -134,7 +189,7 @@ export function renderPrintSheet() {
             
             if (item.desc) {
                 const descSpan = document.createElement('span');
-                descSpan.className = "italic ml-1";
+                descSpan.className = "italic ml-1 text-[10px]";
                 descSpan.innerText = `- ${item.desc}`;
                 div.appendChild(descSpan);
             }
@@ -148,14 +203,39 @@ export function renderPrintSheet() {
     const otCont = document.getElementById('pr-other-traits');
     if(otCont) {
         otCont.innerHTML = '';
-        Object.entries(window.state.dots.other || {}).forEach(([k,v]) => {
-            if(v > 0) {
-                 const row = document.createElement('div');
-                 row.className = "flex justify-between border-b border-black text-xs mb-1";
-                 row.innerHTML = `<span>${k}</span><span>${renderDots(v,5)}</span>`;
-                 otCont.appendChild(row);
-            }
-        });
+
+        // Add Rituals Here (New)
+        if (window.state.rituals && window.state.rituals.length > 0) {
+            const ritHeader = document.createElement('div');
+            ritHeader.className = "font-cinzel font-bold text-sm border-b border-black mb-1 mt-2";
+            ritHeader.innerText = "RITUALS";
+            otCont.appendChild(ritHeader);
+
+            const sorted = [...window.state.rituals].sort((a,b) => a.level - b.level);
+            sorted.forEach(r => {
+                const row = document.createElement('div');
+                row.className = "text-xs mb-1 flex justify-between";
+                row.innerHTML = `<span>${r.name}</span><span class="font-bold">Lvl ${r.level}</span>`;
+                otCont.appendChild(row);
+            });
+        }
+        
+        // Standard Other Traits
+        if (window.state.dots.other) {
+            const traitHeader = document.createElement('div');
+            traitHeader.className = "font-cinzel font-bold text-sm border-b border-black mb-1 mt-2";
+            traitHeader.innerText = "TRAITS";
+            otCont.appendChild(traitHeader);
+
+            Object.entries(window.state.dots.other || {}).forEach(([k,v]) => {
+                if(v > 0) {
+                     const row = document.createElement('div');
+                     row.className = "flex justify-between border-b border-black text-xs mb-1";
+                     row.innerHTML = `<span>${k}</span><span>${renderDots(v,5)}</span>`;
+                     otCont.appendChild(row);
+                }
+            });
+        }
     }
 
     // 6. Humanity / Willpower / Blood
@@ -190,7 +270,6 @@ export function renderPrintSheet() {
     if(bBox) {
         // Max blood based on Gen
         const gen = 13 - (window.state.dots.back['Generation']||0);
-        // Simple approximation or use Rules
         let html = '';
         const currentB = window.state.status.blood || 0;
         for(let i=0; i<20; i++) { // Max 20 boxes on sheet usually
@@ -236,7 +315,7 @@ export function renderPrintSheet() {
             {n: 'Weapon Str.', d: 6, dmg: 'Weapon'}
         ];
         manuevers.forEach(m => {
-            tblHTML += `<tr><td class="py-1 border-b border-gray-300 font-bold">${m.n}</td><td class="border-b border-gray-300">${m.d}</td><td class="border-b border-gray-300">${m.dmg}</td></tr>`;
+            tblHTML += `<tr><td class="py-1 border-b border-gray-300 font-bold text-[10px]">${m.n}</td><td class="border-b border-gray-300 text-[10px]">${m.d}</td><td class="border-b border-gray-300 text-[10px]">${m.dmg}</td></tr>`;
         });
         
         // Add Weapons from Inventory
@@ -244,7 +323,7 @@ export function renderPrintSheet() {
             window.state.inventory.filter(i => i.type === 'Weapon' && i.status === 'carried').forEach(w => {
                 const name = w.displayName || w.name;
                 const stats = w.stats || {};
-                tblHTML += `<tr><td class="py-1 border-b border-gray-300 font-bold italic">${name}</td><td class="border-b border-gray-300">${stats.diff||6}</td><td class="border-b border-gray-300">${stats.dmg||'-'}</td></tr>`;
+                tblHTML += `<tr><td class="py-1 border-b border-gray-300 font-bold italic text-[10px]">${name}</td><td class="border-b border-gray-300 text-[10px]">${stats.diff||6}</td><td class="border-b border-gray-300 text-[10px]">${stats.dmg||'-'}</td></tr>`;
             });
         }
         
@@ -276,102 +355,6 @@ export function renderPrintSheet() {
         if (gearCarried) gearCarried.innerHTML = window.state.inventory.filter(i => i.status === 'carried' && i.type !== 'Vehicle' && i.type !== 'Armor' && i.type !== 'Weapon').map(i => i.name).join(', ');
         if (gearOwned) gearOwned.innerHTML = window.state.inventory.filter(i => i.status === 'owned' && i.type !== 'Vehicle').map(i => i.name).join(', ');
         if (vehicles) vehicles.innerHTML = window.state.inventory.filter(i => i.type === 'Vehicle').map(i => `${i.name} (Safe:${i.stats?.safe} Max:${i.stats?.max})`).join('<br>');
-    }
-
-    // --- NEW: Update Edit Mode (Phase 6) Combat/Armor ---
-    const armorRatingEl = document.getElementById('total-armor-rating');
-    const armorPenaltyEl = document.getElementById('total-armor-penalty');
-    const armorNamesEl = document.getElementById('active-armor-names');
-    const combatListEl = document.getElementById('combat-list-create');
-
-    // 1. Calculate Armor for Edit Mode
-    if (window.state.inventory && Array.isArray(window.state.inventory)) {
-        const armors = window.state.inventory.filter(i => i.type === 'Armor' && i.status === 'carried');
-        let totalR = 0, totalP = 0, names = [];
-        armors.forEach(a => {
-            totalR += parseInt(a.stats?.rating) || 0;
-            totalP += parseInt(a.stats?.penalty) || 0;
-            names.push(a.displayName || a.name);
-        });
-        if (armorRatingEl) armorRatingEl.innerText = totalR;
-        if (armorPenaltyEl) armorPenaltyEl.innerText = totalP;
-        if (armorNamesEl) armorNamesEl.innerText = names.length > 0 ? names.join(', ') : "None";
-    }
-
-    // 2. Full Update of Edit Mode Combat List (Revised Diff Values)
-    if (combatListEl) {
-        // Get the parent container (the column flex container)
-        const combatContainer = combatListEl.parentElement;
-        if (combatContainer) {
-            // Rebuild the ENTIRE content of the parent to replace hardcoded items
-            let html = `
-                <div class="grid grid-cols-7 gap-1 text-[9px] uppercase text-gray-400 font-bold border-b border-[#555] pb-1 mb-2 text-center">
-                    <div class="col-span-2 text-left pl-2">Attack</div>
-                    <div>Diff</div>
-                    <div>Dmg</div>
-                    <div>Rng</div>
-                    <div>Rate</div>
-                    <div>Clip</div>
-                </div>
-            `;
-
-            // Revised Standard Maneuvers
-            const standards = [
-                {n:'Bite', diff:5, dmg:'Str+1(A)', rng:'-', rate:'-', clip:'-'}, // Diff 5
-                {n:'Block', diff:6, dmg:'None (R)', rng:'-', rate:'-', clip:'-'},
-                {n:'Claw', diff:6, dmg:'Str+1(A)', rng:'-', rate:'-', clip:'-'},
-                {n:'Grapple', diff:6, dmg:'Str(B)', rng:'-', rate:'-', clip:'-'},
-                {n:'Disarm', diff:7, dmg:'Special', rng:'-', rate:'-', clip:'-'},
-                {n:'Dodge', diff:6, dmg:'None (R)', rng:'-', rate:'-', clip:'-'},
-                {n:'Hold', diff:6, dmg:'None (C)', rng:'-', rate:'-', clip:'-'},
-                {n:'Kick', diff:7, dmg:'Str+1', rng:'-', rate:'-', clip:'-'},
-                {n:'Parry', diff:6, dmg:'None (R)', rng:'-', rate:'-', clip:'-'},
-                {n:'Strike', diff:6, dmg:'Str', rng:'-', rate:'-', clip:'-'},
-                {n:'Sweep', diff:7, dmg:'Str(K)', rng:'-', rate:'-', clip:'-'},
-                {n:'Tackle', diff:7, dmg:'Str+1(K)', rng:'-', rate:'-', clip:'-'},
-                {n:'Weapon Strike', diff:6, dmg:'Weapon', rng:'-', rate:'-', clip:'-'},
-                {n:'Auto Fire', diff:8, dmg:'Special', rng:'-', rate:'-', clip:'-'},
-                {n:'Multi Shot', diff:6, dmg:'Weapon', rng:'-', rate:'-', clip:'-'},
-                {n:'Strafing', diff:8, dmg:'Special', rng:'-', rate:'-', clip:'-'},
-                {n:'3-Rnd Burst', diff:7, dmg:'Weapon', rng:'-', rate:'-', clip:'-'},
-                {n:'Two Weapons', diff:7, dmg:'Weapon', rng:'-', rate:'-', clip:'-'}
-            ];
-
-            standards.forEach(s => {
-                html += `
-                    <div class="grid grid-cols-7 gap-1 text-[9px] border-b border-[#222] py-1 text-center text-gray-500 hover:bg-[#1a1a1a]">
-                        <div class="col-span-2 text-left pl-2 font-bold text-white">${s.n}</div>
-                        <div>${s.diff}</div>
-                        <div>${s.dmg}</div>
-                        <div>${s.rng}</div>
-                        <div>${s.rate}</div>
-                        <div>${s.clip}</div>
-                    </div>
-                `;
-            });
-
-            // Add Equipped Weapons
-            if (window.state.inventory && Array.isArray(window.state.inventory)) {
-                window.state.inventory.filter(i => i.type === 'Weapon' && i.status === 'carried').forEach(w => {
-                    const name = w.displayName || w.name;
-                    html += `
-                        <div class="grid grid-cols-7 gap-1 text-[9px] border-b border-[#222] py-1 text-center text-gray-500 hover:bg-[#1a1a1a]">
-                            <div class="col-span-2 text-left pl-2 font-bold text-gold truncate" title="${name}">${name}</div>
-                            <div>${w.stats.diff || 6}</div>
-                            <div>${w.stats.dmg || '-'}</div>
-                            <div>${w.stats.range || '-'}</div>
-                            <div>${w.stats.rate || '-'}</div>
-                            <div>${w.stats.clip || '-'}</div>
-                        </div>
-                    `;
-                });
-            }
-
-            // Restore the empty container div for future use (though we are overwriting parent)
-            html += '<div id="combat-list-create" class="space-y-1 mt-2"></div>';
-            
-            combatContainer.innerHTML = html;
-        }
     }
 
     // 9. Expanded Backgrounds & Havens
@@ -417,5 +400,34 @@ export function renderPrintSheet() {
 
     const hist = document.getElementById('pr-history');
     if(hist) hist.innerText = document.getElementById('char-history')?.value || "";
+
+    // 11. NPCs / Retainers (NEW)
+    const npcCont = document.getElementById('pr-retainers');
+    if (npcCont) {
+        if (window.state.retainers && window.state.retainers.length > 0) {
+             npcCont.innerHTML = window.state.retainers.map(npc => {
+                 let type = npc.template === 'animal' ? (npc.ghouled ? 'Ghouled Animal' : 'Animal') : (npc.template === 'mortal' ? 'Mortal' : 'Ghoul');
+                 return `<div class="mb-1"><strong>${npc.name || "Unnamed"}</strong> <span class="text-[10px] italic">(${type})</span></div>`;
+             }).join('');
+        } else {
+            npcCont.innerHTML = '<span class="italic text-gray-500">None</span>';
+        }
+    }
+
+    // 12. Experience Log (NEW)
+    const xpCont = document.getElementById('pr-xp-log');
+    if (xpCont) {
+        const total = parseInt(document.getElementById('c-xp-total')?.value) || 0;
+        const log = window.state.xpLog || [];
+        const spent = log.reduce((a,b)=>a+b.cost,0);
+        
+        xpCont.innerHTML = `
+            <div class="flex justify-between border-b border-black mb-1 font-bold">
+                <span>Total: ${total}</span>
+                <span>Spent: ${spent}</span>
+                <span>Remaining: ${total - spent}</span>
+            </div>
+        `;
+    }
 }
 window.renderPrintSheet = renderPrintSheet;
