@@ -74,9 +74,11 @@ window.onerror = function(msg, url, line) {
 // Changed key to prevent collision with V20 app on same domain
 const AUTOSAVE_KEY = 'revised_character_autosave_v1';
 let autoSaveTimeout = null;
+let isResetting = false; // PREVENTS RACE CONDITION ON RELOAD
 
 // 1. Synchronous Save (Immediate)
 function forceLocalSave() {
+    if (isResetting) return; // ABORT IF RESETTING
     if (!window.state || !window.state.dots) return;
     try {
         const data = JSON.stringify(window.state);
@@ -101,11 +103,15 @@ window.addEventListener('visibilitychange', () => {
     }
 });
 window.addEventListener('pagehide', forceLocalSave); 
-window.addEventListener('beforeunload', (e) => {
-    forceLocalSave();
+
+// --- NAVIGATION GUARD ---
+const beforeUnloadHandler = (e) => {
+    if (isResetting) return; // Skip logic if resetting
+    forceLocalSave(); // Ensure save happens before prompt
     e.preventDefault();
     e.returnValue = '';
-});
+};
+window.addEventListener('beforeunload', beforeUnloadHandler);
 
 function loadAutoSave() {
     try {
@@ -154,16 +160,10 @@ window.state = {
 
 let user = null;
 
-// --- NAVIGATION GUARD ---
-const beforeUnloadHandler = (e) => {
-    forceLocalSave(); // Ensure save happens before prompt
-    e.preventDefault();
-    e.returnValue = '';
-};
-
 // --- BINDING EXPORTS TO WINDOW ---
 window.handleNew = () => {
     if(confirm("Create New Character? Unsaved changes will be overwritten.")) {
+        isResetting = true; // LOCK SAVES
         window.removeEventListener('beforeunload', beforeUnloadHandler);
         localStorage.removeItem(AUTOSAVE_KEY);
         window.location.reload();
@@ -457,8 +457,6 @@ function initUI() {
 
         const loaded = loadAutoSave();
         
-        window.addEventListener('beforeunload', beforeUnloadHandler);
-
         // Anti-Autofill & Setup
         const sensitiveInputs = ['c-name', 'c-player', 'c-sire', 'c-concept', 'c-chronicle'];
         sensitiveInputs.forEach(id => {
