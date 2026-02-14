@@ -45,7 +45,6 @@ let mapState = {
 
 // --- GLOBAL CLICK HANDLER ---
 window.cmapNodeClick = (id) => {
-    // console.log("Node Clicked:", id);
     const maps = getLocalMaps();
     const currentData = maps[mapState.currentMapId] || { characters: [], relationships: [] };
     const char = currentData.characters.find(c => c.id === id);
@@ -78,7 +77,10 @@ function getLocalMaps() {
 }
 
 function saveLocalMap() {
+    // 1. Trigger Local Storage Auto-Save (Visual update)
     if (window.updatePools) window.updatePools(); 
+    
+    // 2. Trigger Cloud Sync (Firebase)
     if (window.performSave) {
         window.performSave(true); 
     } else if (window.handleSaveClick) {
@@ -451,19 +453,35 @@ window.cmapViewCodex = (id) => {
     
     let codexId = "";
     let name = "";
+    let itemRef = null;
     
     if (char) {
         codexId = char.codexId;
         name = char.name;
+        itemRef = char;
     } else if (rel) {
         codexId = rel.codexId;
         name = rel.label || "Relationship";
+        itemRef = rel;
     }
 
-    if (codexId) {
+    // CHECK IF ENTRY EXISTS IN CODEX ARRAY
+    let entryExists = false;
+    if (codexId && window.state.codex) {
+        entryExists = window.state.codex.some(c => c.id === codexId);
+    }
+
+    if (codexId && entryExists) {
         if (window.viewCodex) window.viewCodex(codexId);
         else showNotification("Journal system not active.");
     } else {
+        // BROKEN LINK OR NEW ENTRY NEEDED
+        if (codexId && !entryExists) {
+            console.warn("Broken Codex Link detected. Resetting.");
+            if (itemRef) delete itemRef.codexId; // Clear bad ID
+            saveLocalMap();
+        }
+
         if (confirm(`Create Codex Entry for "${name}"?`)) {
             createLocalCodexEntry(id, char ? 'char' : 'rel', name);
         }
@@ -473,6 +491,27 @@ window.cmapViewCodex = (id) => {
 function createLocalCodexEntry(mapId, type, name) {
     if (!window.state.codex) window.state.codex = [];
     
+    // DUPLICATE CHECK
+    const existing = window.state.codex.find(c => c.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+        if (confirm(`A Codex entry for "${existing.name}" already exists. Link to it?`)) {
+            const maps = getLocalMaps();
+            const currentData = maps[mapState.currentMapId];
+            
+            if (type === 'char') {
+                const char = currentData.characters.find(c => c.id === mapId);
+                if(char) char.codexId = existing.id;
+            } else {
+                const rel = currentData.relationships[mapId];
+                if(rel) rel.codexId = existing.id;
+            }
+            saveLocalMap();
+            showNotification("Linked to existing entry.");
+            if (window.viewCodex) window.viewCodex(existing.id);
+            return;
+        }
+    }
+
     const maps = getLocalMaps();
     const currentData = maps[mapState.currentMapId];
     
@@ -742,7 +781,6 @@ async function renderMermaidChart() {
     });
 
     visibleRels.forEach(r => {
-        // PREVENT GHOST NODES: Only draw rels if both nodes are rendered
         if (!renderedIds.has(r.source) || !renderedIds.has(r.target)) return;
 
         let arrow = "-->";
@@ -758,11 +796,10 @@ async function renderMermaidChart() {
         container.innerHTML = svg;
         if (bindFunctions) bindFunctions(container);
         
-        const nodes = container.querySelectorAll('g.node');
-        
         // Sort characters by ID length descending to prevent substring false positives
         const sortedChars = [...visibleChars].sort((a,b) => b.id.length - a.id.length);
 
+        const nodes = container.querySelectorAll('g.node');
         nodes.forEach(node => {
             node.style.cursor = "pointer";
             const domId = node.id;
