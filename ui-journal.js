@@ -22,8 +22,9 @@ export function renderJournalTab() {
     const activeClass = "border-b-2 border-[#d4af37] text-[#d4af37] font-bold";
     const inactiveClass = "text-gray-500 hover:text-white transition-colors";
 
+    // FIX: Changed h-full to h-[600px] to enforce a constraint and trigger scrollbars
     container.innerHTML = `
-        <div class="flex flex-col h-full overflow-hidden"> <!-- Added overflow-hidden to parent -->
+        <div class="flex flex-col h-[600px] overflow-hidden"> 
             <!-- Top Tabs -->
             <div class="flex gap-6 border-b border-[#333] pb-2 mb-2 px-2 shrink-0">
                 <button id="tab-sessions" class="text-xs uppercase tracking-wider px-2 pb-1 ${window.state.journalTab==='sessions'?activeClass:inactiveClass}">Session Logs</button>
