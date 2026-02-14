@@ -1,4 +1,5 @@
 import { showNotification } from "./ui-common.js";
+import { renderCoterieMap } from "./coterie-map.js"; 
 
 // --- JOURNAL & CODEX LOGIC ---
 
@@ -12,7 +13,7 @@ export function renderJournalTab() {
     // Initialize State
     if (!window.state.sessionLogs) window.state.sessionLogs = [];
     if (!window.state.codex) window.state.codex = [];
-    if (!window.state.journalTab) window.state.journalTab = 'sessions'; // 'sessions' or 'codex'
+    if (!window.state.journalTab) window.state.journalTab = 'sessions'; // 'sessions', 'map', 'codex'
 
     // Update Cache
     codexCache = window.state.codex.map(c => c.name);
@@ -26,6 +27,7 @@ export function renderJournalTab() {
             <!-- Top Tabs -->
             <div class="flex gap-6 border-b border-[#333] pb-2 mb-2 px-2">
                 <button id="tab-sessions" class="text-xs uppercase tracking-wider px-2 pb-1 ${window.state.journalTab==='sessions'?activeClass:inactiveClass}">Session Logs</button>
+                <button id="tab-map" class="text-xs uppercase tracking-wider px-2 pb-1 ${window.state.journalTab==='map'?activeClass:inactiveClass}">Coterie Map</button>
                 <button id="tab-codex" class="text-xs uppercase tracking-wider px-2 pb-1 ${window.state.journalTab==='codex'?activeClass:inactiveClass}">Codex</button>
             </div>
             
@@ -117,6 +119,10 @@ export function renderJournalTab() {
         window.state.journalTab = 'sessions';
         renderJournalTab();
     };
+    document.getElementById('tab-map').onclick = () => {
+        window.state.journalTab = 'map';
+        renderJournalTab();
+    };
     document.getElementById('tab-codex').onclick = () => {
         window.state.journalTab = 'codex';
         renderJournalTab();
@@ -126,6 +132,8 @@ export function renderJournalTab() {
     const mainView = document.getElementById('journal-main-view');
     if (window.state.journalTab === 'sessions') {
         renderSessionView(mainView);
+    } else if (window.state.journalTab === 'map') {
+        renderCoterieMap(mainView);
     } else {
         renderCodexView(mainView);
     }
@@ -201,7 +209,7 @@ export function renderJournalTab() {
 window.renderJournalTab = renderJournalTab;
 
 // ==========================================================================
-// VIEW 1: SESSION LOGS (Refactored)
+// VIEW 1: SESSION LOGS
 // ==========================================================================
 
 function renderSessionView(container) {
@@ -369,13 +377,20 @@ function renderSessionLogForm(data) {
                 <div><h2 class="text-lg text-white font-bold uppercase tracking-wider">Session Journal</h2><div class="text-gold text-[10px]">${data.charName}</div></div>
                 <div class="flex gap-2"><button id="btn-save-log" class="bg-green-700 hover:bg-green-600 text-white px-3 py-1 text-[10px] font-bold uppercase rounded">Save</button>${!data.isNew ? `<button id="btn-delete-log" class="bg-red-900 hover:bg-red-700 text-white px-3 py-1 text-[10px] font-bold uppercase rounded">Delete</button>` : ''}</div>
             </div>
+            
+            <div class="mb-4">
+                <input type="text" id="log-title" class="w-full bg-transparent border-b border-[#333] text-white font-bold text-sm mb-2" placeholder="Session Title" value="${data.title}">
+                <div class="flex gap-2 mb-2">
+                    <input type="text" id="log-sess-num" class="bg-transparent border-b border-[#333] text-white w-16" placeholder="#" value="${data.sessionNum}">
+                    <input type="date" id="log-date" class="bg-transparent border-b border-[#333] text-gray-300" value="${data.datePlayed}">
+                </div>
+            </div>
 
             <!-- Details & Status -->
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <div class="text-[10px] font-bold text-gray-500 uppercase mb-1">Session Details</div>
-                    <div class="grid grid-cols-3 gap-2 mb-2"><input type="text" id="log-sess-num" class="bg-transparent border-b border-[#333] text-white" placeholder="#" value="${data.sessionNum}"><input type="date" id="log-date" class="bg-transparent border-b border-[#333] text-gray-300" value="${data.datePlayed}"><input type="text" id="log-game-date" class="bg-transparent border-b border-[#333] text-white" placeholder="Game Date" value="${data.gameDate}"></div>
-                    <input type="text" id="log-title" class="w-full bg-transparent border-b border-[#333] text-white font-bold text-sm" placeholder="Title" value="${data.title}">
+                    <div class="grid grid-cols-1 gap-2 mb-2"><input type="text" id="log-game-date" class="bg-transparent border-b border-[#333] text-white" placeholder="Game Date" value="${data.gameDate}"></div>
                 </div>
                 <div class="bg-[#111] p-2 border border-[#333]">
                     <div class="text-[10px] font-bold text-gray-500 uppercase mb-1">Status (Start)</div>
