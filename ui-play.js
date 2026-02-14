@@ -784,12 +784,17 @@ function renderPlayModeXp() {
     const xpCont = document.getElementById('experience-play-container');
     if (xpCont) {
         xpCont.innerHTML = '';
-        const xpVal = document.getElementById('c-xp-total')?.value || 0;
+        
+        // Use textFields fallback first, then DOM
+        let valRaw = window.state.textFields ? window.state.textFields['c-xp-total'] : null;
+        if (!valRaw) valRaw = document.getElementById('c-xp-total')?.value;
+        const xpVal = parseInt(valRaw) || 0;
+        
         const log = window.state.xpLog || [];
         const spent = log.reduce((a,b)=>a+b.cost,0);
         
         xpCont.innerHTML = `
-            <div class="section-title mt-6">Experience</div>
+            <div class="section-title">Experience</div>
             <div class="bg-[#111] p-2 border border-[#333] mt-2">
                 <div class="flex justify-between text-[10px] mb-1"><span>Earned:</span> <span class="text-purple-400 font-bold">${xpVal}</span></div>
                 <div class="flex justify-between text-[10px] mb-1"><span>Spent:</span> <span class="text-gray-400 font-bold">${spent}</span></div>
