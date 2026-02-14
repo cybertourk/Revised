@@ -45,6 +45,7 @@ let mapState = {
 
 // --- GLOBAL CLICK HANDLER ---
 window.cmapNodeClick = (id) => {
+    // console.log("Node Clicked:", id);
     const maps = getLocalMaps();
     const currentData = maps[mapState.currentMapId] || { characters: [], relationships: [] };
     const char = currentData.characters.find(c => c.id === id);
@@ -741,6 +742,7 @@ async function renderMermaidChart() {
     });
 
     visibleRels.forEach(r => {
+        // PREVENT GHOST NODES: Only draw rels if both nodes are rendered
         if (!renderedIds.has(r.source) || !renderedIds.has(r.target)) return;
 
         let arrow = "-->";
@@ -756,12 +758,25 @@ async function renderMermaidChart() {
         container.innerHTML = svg;
         if (bindFunctions) bindFunctions(container);
         
-        // Re-bind clicks for robustness
-        container.querySelectorAll('g.node').forEach(node => {
+        const nodes = container.querySelectorAll('g.node');
+        
+        // Sort characters by ID length descending to prevent substring false positives
+        const sortedChars = [...visibleChars].sort((a,b) => b.id.length - a.id.length);
+
+        nodes.forEach(node => {
             node.style.cursor = "pointer";
-            const charId = visibleChars.find(c => node.id.includes(c.id))?.id;
-            if (charId) {
-                node.onclick = (e) => { e.stopPropagation(); window.cmapNodeClick(charId); };
+            const domId = node.id;
+            const char = sortedChars.find(c => domId.includes(c.id));
+            
+            if (char) {
+                const newNode = node.cloneNode(true);
+                node.parentNode.replaceChild(newNode, node);
+                
+                newNode.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    e.preventDefault();
+                    window.cmapNodeClick(char.id);
+                });
             }
         });
         
