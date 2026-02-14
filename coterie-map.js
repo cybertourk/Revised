@@ -477,20 +477,27 @@ window.cmapViewCodex = (id) => {
 function createLocalCodexEntry(mapId, type, name) {
     if (!window.state.codex) window.state.codex = [];
     
+    const maps = getLocalMaps();
+    const currentData = maps[mapState.currentMapId];
+    
+    let entryType = 'Lore';
+    if (type === 'char') {
+        const char = currentData.characters.find(c => c.id === mapId);
+        if (char && char.type === 'pc') entryType = 'PC';
+        else entryType = 'NPC';
+    }
+
     const newId = "cx_" + Date.now();
     const entry = {
         id: newId,
         name: name,
-        type: type === 'char' ? 'NPC' : 'Lore',
+        type: entryType,
         tags: ['Map Auto-Gen'],
         desc: "", 
         image: null
     };
     
     window.state.codex.push(entry);
-    
-    const maps = getLocalMaps();
-    const currentData = maps[mapState.currentMapId];
     
     if (type === 'char') {
         const char = currentData.characters.find(c => c.id === mapId);
