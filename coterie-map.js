@@ -459,43 +459,12 @@ window.cmapViewCodex = (id) => {
         name = rel.label || "Relationship";
     }
 
-    // Verify existence of linked Codex entry
-    let entryExists = false;
-    if (codexId && window.state.codex) {
-        entryExists = window.state.codex.some(c => c.id === codexId);
-    }
-
-    // Auto-fix broken links (e.g. entry deleted)
-    if (codexId && !entryExists) {
-        if (char) delete char.codexId;
-        else if (rel) delete rel.codexId;
-        codexId = "";
-        saveLocalMap();
-    }
-
     if (codexId) {
         if (window.viewCodex) window.viewCodex(codexId);
         else showNotification("Journal system not active.");
     } else {
-        // Check for existing entries with same name to offer linking
-        let existingMatch = null;
-        if (window.state.codex) {
-            existingMatch = window.state.codex.find(c => c.name.toLowerCase() === name.toLowerCase());
-        }
-
-        if (existingMatch) {
-            if (confirm(`Link to existing Codex entry "${existingMatch.name}"?`)) {
-                if (char) char.codexId = existingMatch.id;
-                else if (rel) rel.codexId = existingMatch.id;
-                saveLocalMap();
-                window.viewCodex(existingMatch.id);
-            } else if (confirm(`Create NEW Codex Entry for "${name}" instead?`)) {
-                createLocalCodexEntry(id, char ? 'char' : 'rel', name);
-            }
-        } else {
-            if (confirm(`Create Codex Entry for "${name}"?`)) {
-                createLocalCodexEntry(id, char ? 'char' : 'rel', name);
-            }
+        if (confirm(`Create Codex Entry for "${name}"?`)) {
+            createLocalCodexEntry(id, char ? 'char' : 'rel', name);
         }
     }
 };
@@ -772,6 +741,8 @@ async function renderMermaidChart() {
     });
 
     visibleRels.forEach(r => {
+        if (!renderedIds.has(r.source) || !renderedIds.has(r.target)) return;
+
         let arrow = "-->";
         if (r.type === 'blood') arrow = "==>";
         if (r.type === 'boon') arrow = "-.->";
