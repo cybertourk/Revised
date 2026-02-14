@@ -45,7 +45,6 @@ let mapState = {
 
 // --- GLOBAL CLICK HANDLER ---
 window.cmapNodeClick = (id) => {
-    // Ensure data exists
     const maps = getLocalMaps();
     const currentData = maps[mapState.currentMapId] || { characters: [], relationships: [] };
     const char = currentData.characters.find(c => c.id === id);
@@ -55,7 +54,6 @@ window.cmapNodeClick = (id) => {
     if (char.type === 'group') {
         window.cmapToggleGroup(id);
     } else {
-        // In stand-alone mode, always allow editing
         mapState.editingNodeId = id;
         const nameInput = document.getElementById('cmap-edit-name');
         const clanInput = document.getElementById('cmap-edit-clan');
@@ -72,7 +70,6 @@ window.cmapNodeClick = (id) => {
 // --- DATA HELPERS (LOCAL STATE) ---
 function getLocalMaps() {
     if (!window.state.coterieMaps) window.state.coterieMaps = {};
-    // Ensure 'main' always exists
     if (!window.state.coterieMaps['main']) {
         window.state.coterieMaps['main'] = { characters: [], relationships: [] };
     }
@@ -80,8 +77,17 @@ function getLocalMaps() {
 }
 
 function saveLocalMap() {
-    // Trigger the main app's auto-save to persist changes to localStorage/JSON
-    if (window.updatePools) window.updatePools(); // HACK: touches save trigger
+    // 1. Trigger Local Storage Auto-Save (Visual update)
+    if (window.updatePools) window.updatePools(); 
+    
+    // 2. Trigger Cloud Sync (Firebase)
+    // If performSave exists (from firebase-manager/main), use it for silent save.
+    if (window.performSave) {
+        window.performSave(true); // true = silent/toast handled by caller
+    } else if (window.handleSaveClick) {
+        // Fallback to manual save trigger if performSave isn't exposed
+        window.handleSaveClick(); 
+    }
 }
 
 // --- MAIN RENDERER ---
@@ -436,7 +442,7 @@ window.cmapOpenMoveModal = (id) => {
 };
 
 window.cmapOpenEditModal = (id) => {
-    window.cmapNodeClick(id); // Re-use main click handler logic
+    window.cmapNodeClick(id); 
 };
 
 // CODEX (Local)
@@ -757,5 +763,28 @@ async function renderMermaidChart() {
         
     } catch (e) {
         console.warn("Graph Render Warning:", e);
+    }
+}
+
+function navigateUp() {
+    if (mapState.mapHistory.length === 0) return;
+    const prevMap = mapState.mapHistory.pop();
+    mapState.currentMapId = prevMap;
+    
+    // UI Updates
+    const sel = document.getElementById('cmap-select-map');
+    if(sel) sel.value = prevMap;
+    
+    refreshMapUI();
+    
+    // Breadcrumbs Logic
+    const bc = document.getElementById('cmap-breadcrumbs');
+    if(bc) {
+        if (mapState.mapHistory.length > 0) {
+            bc.classList.remove('hidden');
+            document.getElementById('cmap-current-label').innerText = prevMap;
+        } else {
+            bc.classList.add('hidden');
+        }
     }
 }
