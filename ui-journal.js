@@ -23,16 +23,16 @@ export function renderJournalTab() {
     const inactiveClass = "text-gray-500 hover:text-white transition-colors";
 
     container.innerHTML = `
-        <div class="flex flex-col h-full">
+        <div class="flex flex-col h-full overflow-hidden"> <!-- Added overflow-hidden to parent -->
             <!-- Top Tabs -->
-            <div class="flex gap-6 border-b border-[#333] pb-2 mb-2 px-2">
+            <div class="flex gap-6 border-b border-[#333] pb-2 mb-2 px-2 shrink-0">
                 <button id="tab-sessions" class="text-xs uppercase tracking-wider px-2 pb-1 ${window.state.journalTab==='sessions'?activeClass:inactiveClass}">Session Logs</button>
                 <button id="tab-map" class="text-xs uppercase tracking-wider px-2 pb-1 ${window.state.journalTab==='map'?activeClass:inactiveClass}">Coterie Map</button>
                 <button id="tab-codex" class="text-xs uppercase tracking-wider px-2 pb-1 ${window.state.journalTab==='codex'?activeClass:inactiveClass}">Codex</button>
             </div>
             
             <!-- Main Content Area -->
-            <div id="journal-main-view" class="flex-1 overflow-hidden h-full"></div>
+            <div id="journal-main-view" class="flex-1 overflow-hidden h-full relative"></div>
         </div>
         
         <!-- Autocomplete Container (Hidden by default) -->
@@ -216,14 +216,14 @@ function renderSessionView(container) {
     container.innerHTML = `
         <div class="flex h-full gap-4">
             <!-- Sidebar -->
-            <div class="w-1/4 flex flex-col border-r border-[#333] pr-2">
-                <button onclick="window.initNewSessionLog()" class="bg-[#8b0000] hover:bg-red-700 text-white font-bold py-1 px-2 text-[10px] uppercase mb-3 flex items-center justify-center gap-1">
+            <div class="w-1/4 flex flex-col border-r border-[#333] pr-2 shrink-0 h-full">
+                <button onclick="window.initNewSessionLog()" class="bg-[#8b0000] hover:bg-red-700 text-white font-bold py-1 px-2 text-[10px] uppercase mb-3 flex items-center justify-center gap-1 shrink-0">
                     <i class="fas fa-plus"></i> New Session
                 </button>
-                <div id="journal-history-list" class="flex-1 overflow-y-auto space-y-1"></div>
+                <div id="journal-history-list" class="flex-1 overflow-y-auto space-y-1 custom-scrollbar"></div>
             </div>
             <!-- Content -->
-            <div class="w-3/4 h-full overflow-y-auto pr-2" id="journal-content-area">
+            <div class="w-3/4 h-full overflow-y-auto pr-2 custom-scrollbar" id="journal-content-area">
                 <div class="flex items-center justify-center h-full text-gray-500 italic text-xs">Select a session or create new.</div>
             </div>
         </div>
@@ -491,12 +491,12 @@ function renderCodexView(container) {
     container.innerHTML = `
         <div class="flex h-full gap-4">
             <!-- Sidebar List -->
-            <div class="w-1/4 flex flex-col border-r border-[#333] pr-2">
-                <input type="text" id="codex-search" class="bg-[#111] border border-[#333] text-xs p-1 mb-2 text-white placeholder-gray-600" placeholder="Search...">
-                <button onclick="window.editCodexEntry()" class="bg-[#d4af37] hover:bg-[#fcd34d] text-black font-bold py-1 px-2 text-[10px] uppercase mb-3 text-center">
+            <div class="w-1/4 flex flex-col border-r border-[#333] pr-2 shrink-0 h-full">
+                <input type="text" id="codex-search" class="bg-[#111] border border-[#333] text-xs p-1 mb-2 text-white placeholder-gray-600 shrink-0" placeholder="Search...">
+                <button onclick="window.editCodexEntry()" class="bg-[#d4af37] hover:bg-[#fcd34d] text-black font-bold py-1 px-2 text-[10px] uppercase mb-3 text-center shrink-0">
                     <i class="fas fa-plus"></i> Add Entry
                 </button>
-                <div id="codex-list" class="flex-1 overflow-y-auto space-y-1"></div>
+                <div id="codex-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-1"></div>
             </div>
             <!-- Editor Form -->
             <div class="w-3/4 h-full bg-[#080808] border border-[#333] p-6 relative hidden overflow-y-auto no-scrollbar" id="codex-editor">
@@ -551,7 +551,7 @@ function renderCodexView(container) {
 
                 <div class="flex justify-end gap-4 mt-auto">
                     <button onclick="window.deleteCodexEntry()" class="text-red-500 text-xs hover:text-red-300 uppercase font-bold mr-auto">Delete Entry</button>
-                    <button onclick="document.getElementById('codex-editor').classList.add('hidden')" class="border border-[#444] text-gray-400 px-4 py-2 text-xs uppercase font-bold hover:bg-[#222]">Cancel</button>
+                    <button onclick="document.getElementById('codex-editor').classList.add('hidden'); document.getElementById('codex-empty-state').classList.remove('hidden');" class="border border-[#444] text-gray-400 px-4 py-2 text-xs uppercase font-bold hover:bg-[#222]">Cancel</button>
                     <button onclick="window.saveCodexEntry()" class="bg-[#d4af37] text-black px-6 py-2 text-xs uppercase font-bold hover:bg-[#fcd34d] shadow-lg">Save Entry</button>
                 </div>
             </div>
@@ -851,7 +851,7 @@ window.viewCodex = function(id) {
             preview.innerHTML = `<img src="${window.currentCodexImage}" class="w-full h-full object-contain">`;
             document.getElementById('quick-cx-remove-img').classList.remove('hidden');
         } else {
-            preview.innerHTML = '<i class="fas fa-image text-gray-600"></i>';
+            preview.innerHTML = '<i class="fas fa-image text-gray-700 text-3xl"></i>';
             document.getElementById('quick-cx-remove-img').classList.add('hidden');
         }
     };
