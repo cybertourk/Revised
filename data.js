@@ -291,6 +291,9 @@ export const V20_FLAWS_LIST = [
 // --- REVISED EDITION VEHICLES ---
 export const V20_VEHICLES_LIST = [
     { name: "6-Wheel Truck", safe: "60", max: "90", man: "3" },
+    { name: "Small Motorcycle", safe: "75", max: "130", man: "8" },
+    { name: "Medium Motorcycle", safe: "85", max: "130-170", man: "7" },
+    { name: "Large Motorcycle", safe: "90", max: "170", man: "5" },
     { name: "Tank (modern)", safe: "60", max: "100", man: "4" },
     { name: "Tank (WWII)", safe: "30", max: "40", man: "3" },
     { name: "Bus", safe: "60", max: "100", man: "3" },
